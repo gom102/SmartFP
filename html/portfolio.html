@@ -1,0 +1,651 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>스마트재무설계</title>
+	<link href="smart.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="jquery-ui/jquery-ui.css">
+	<script src="jquery-ui/external/jquery/jquery.js"></script>
+    <script src="jquery-ui/jquery-ui.js"></script>
+    
+	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="flot/excanvas.min.js"></script><![endif]-->
+	<script language="javascript" type="text/javascript" src="flot/jquery.flot.js"></script>
+	<script language="javascript" type="text/javascript" src="flot/jquery.flot.pie.js"></script>
+
+	<script type="text/javascript" class="code">
+    $(document).ready(function(){
+		
+		//--- 변수 ---//
+
+		var moneyStock;
+		var weightStock;
+		var rateStock;
+		var moneyBond;
+		var weightBond;
+		var rateBond;
+		var moneyCash;
+		var weightCash;
+		var rateCash;
+		var moneyReal;
+		var weightReal;
+		var rateReal;
+		var moneyOther;
+		var weightOther;
+		var rateOther;
+		
+		var totalMoney = 0;
+		var totalRate = 0;
+		var sMoney = 0;
+		var Tmp = 0;
+		
+		var spent = 0;
+		
+
+		//--- 함수 ---//
+
+		var portfolioplanning = function () {
+			
+			moneyStock = parseInt($("#Ti_moneyStock").val());
+			moneyBond = parseInt($("#Ti_moneyBond").val());
+			moneyCash = parseInt($("#Ti_moneyCash").val());
+			moneyReal = parseInt($("#Ti_moneyReal").val());
+			moneyOther = parseInt($("#Ti_moneyOther").val());
+
+			rateStock = parseInt($("#Ti_rateStock").val() * 10) / 1000;
+			rateBond = parseInt($("#Ti_rateBond").val() * 10) / 1000;
+			rateCash = parseInt($("#Ti_rateCash").val() * 10) / 1000;
+			rateReal = parseInt($("#Ti_rateReal").val() * 10) / 1000;
+			rateOther = parseInt($("#Ti_rateOther").val() * 10) / 1000;
+						
+			weightStock = 0;
+			weightBond = 0;
+			weightCash = 0;
+			weightReal = 0;
+			weightOther = 0;
+			
+			totalMoney = moneyStock + moneyBond + moneyCash + moneyReal + moneyOther;
+			
+			if (totalMoney != 0) {
+
+				weightStock = moneyStock / totalMoney * 100;
+				weightBond = moneyBond / totalMoney * 100;
+				weightCash = moneyCash / totalMoney * 100;
+				weightReal = moneyReal / totalMoney * 100;
+				weightOther = moneyOther / totalMoney * 100;
+	
+				totalRate = (weightStock * rateStock) + (weightBond * rateBond) + (weightCash * rateCash) + (weightReal * rateReal) + (weightOther * rateOther);
+				totalRate = Math.round(totalRate * 100) / 100;
+				
+				weightStock = Math.round(moneyStock / totalMoney * 1000) / 10;
+				weightBond = Math.round(moneyBond / totalMoney * 1000) / 10;
+				weightCash = Math.round(moneyCash / totalMoney * 1000) / 10;
+				weightReal = Math.round(moneyReal / totalMoney * 1000) / 10;
+				weightOther = Math.round(moneyOther / totalMoney * 1000) / 10;
+				
+				$("#Ti_weightStock").val(weightStock);
+				$("#Ti_weightBond").val(weightBond);
+				$("#Ti_weightCash").val(weightCash);
+				$("#Ti_weightReal").val(weightReal);
+				$("#Ti_weightOther").val(weightOther);
+
+			} else {
+
+				$("#Ti_weightStock").val(0);
+				$("#Ti_weightBond").val(0);
+				$("#Ti_weightCash").val(0);
+				$("#Ti_weightReal").val(0);
+				$("#Ti_weightOther").val(0);
+
+			}
+
+			$("#moneyTotal").val(totalMoney);
+			$("#wacc").val(totalRate);
+			
+			
+			var d1 = [
+				{label: "주식",  data: moneyStock},
+				{label: "채권",  data: moneyBond},
+				{label: "현금",  data: moneyCash},
+				{label: "부동산",  data: moneyReal},
+				{label: "기타",  data: moneyOther}
+			];
+
+			$.plot(placeholder, d1, {
+				series: {
+					pie: {
+						show: true,
+						radius: 1,
+						label: {
+							show: true,
+							radius: 3/4,
+							formatter: labelFormatter,
+							background: {
+								opacity: 0.5
+							}
+						}
+					}
+				},
+				grid: {
+					hoverable: true,
+					clickable: true
+				}
+			});
+			
+			
+			var d2 = [];
+			
+			sMoney = totalMoney;
+
+			for (i = 0; i <= 50; i++) {
+				Tmp = 0;
+				if(i > 0) {
+					Tmp = sMoney * (1 + totalRate / 100);
+				} else {
+					Tmp = sMoney;
+				}
+				sMoney = Tmp;
+				if (i == parseInt($("#Ti_spent").val())) {
+					$("#Ti_futureMoney").val(Math.round(sMoney));
+				}
+			
+				d2.push([i, Math.round(sMoney)]);
+			}
+			
+			$.plot("#placeholder1", [{
+				data: d2,
+				bars: { show: true, fill: true }
+			}]);
+
+		}
+
+		var labelFormatter = function (label, series) {
+			return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+		}
+
+
+		portfolioplanning();
+
+
+		//--- 주식비중 moneyStock ---//
+		
+		$("#Hs_moneyStock").slider({
+			range: "max",
+			min: 0,
+			max: 1000,
+			value: 200,
+			slide: function(event, ui) {
+				moneyStock = ui.value;
+				$("#Ti_moneyStock").val(moneyStock);
+				portfolioplanning();
+			}
+		});
+		$("#btn_l_moneyStock").click(function(){
+			moneyStock = parseInt($("#Ti_moneyStock").val());
+			if (moneyStock > 0)
+				moneyStock -= 1;
+			$("#Hs_moneyStock").slider("value",moneyStock);
+			$("#Ti_moneyStock").val(moneyStock);
+			portfolioplanning();
+		});
+		$("#btn_r_moneyStock").click(function(){
+			moneyStock = parseInt($("#Ti_moneyStock").val());
+			if (moneyStock < 1000)
+				moneyStock += 1;
+			$("#Hs_moneyStock").slider("value",moneyStock);
+			$("#Ti_moneyStock").val(moneyStock);
+			portfolioplanning();
+		});
+		
+
+		//--- 채권비중 moneyBond ---//
+		
+		$("#Hs_moneyBond").slider({
+			range: "max",
+			min: 0,
+			max: 1000,
+			value: 500,
+			slide: function(event, ui) {
+				moneyBond = ui.value;
+				$("#Ti_moneyBond").val(moneyBond);
+				portfolioplanning();
+			}
+		});
+		$("#btn_l_moneyBond").click(function(){
+			moneyBond = parseInt($("#Ti_moneyBond").val());
+			if (moneyBond > 0)
+				moneyBond -= 1;
+			$("#Hs_moneyBond").slider("value",moneyBond);
+			$("#Ti_moneyBond").val(moneyBond);
+			portfolioplanning();
+		});
+		$("#btn_r_moneyBond").click(function(){
+			moneyBond = parseInt($("#Ti_moneyBond").val());
+			if (moneyBond < 1000)
+				moneyBond += 1;
+			$("#Hs_moneyBond").slider("value",moneyBond);
+			$("#Ti_moneyBond").val(moneyBond);
+			portfolioplanning();
+		});
+		
+
+		//--- 현금비중 moneyCash ---//
+		
+		$("#Hs_moneyCash").slider({
+			range: "max",
+			min: 0,
+			max: 1000,
+			value: 300,
+			slide: function(event, ui) {
+				moneyCash = ui.value;
+				$("#Ti_moneyCash").val(moneyCash);
+				portfolioplanning();
+			}
+		});
+		$("#btn_l_moneyCash").click(function(){
+			moneyCash = parseInt($("#Ti_moneyCash").val());
+			if (moneyCash > 0)
+				moneyCash -= 1;
+			$("#Hs_moneyCash").slider("value",moneyCash);
+			$("#Ti_moneyCash").val(moneyCash);
+			portfolioplanning();
+		});
+		$("#btn_r_moneyCash").click(function(){
+			moneyCash = parseInt($("#Ti_moneyCash").val());
+			if (moneyCash < 1000)
+				moneyCash += 1;
+			$("#Hs_moneyCash").slider("value",moneyCash);
+			$("#Ti_moneyCash").val(moneyCash);
+			portfolioplanning();
+		});
+		
+
+		//--- 부동산비중 moneyReal ---//
+		
+		$("#Hs_moneyReal").slider({
+			range: "max",
+			min: 0,
+			max: 1000,
+			value: 0,
+			slide: function(event, ui) {
+				moneyReal = ui.value;
+				$("#Ti_moneyReal").val(moneyReal);
+				portfolioplanning();
+			}
+		});
+		$("#btn_l_moneyReal").click(function(){
+			moneyReal = parseInt($("#Ti_moneyReal").val());
+			if (moneyReal > 0)
+				moneyReal -= 1;
+			$("#Hs_moneyReal").slider("value",moneyReal);
+			$("#Ti_moneyReal").val(moneyReal);
+			portfolioplanning();
+		});
+		$("#btn_r_moneyReal").click(function(){
+			moneyReal = parseInt($("#Ti_moneyReal").val());
+			if (moneyReal < 1000)
+				moneyReal += 1;
+			$("#Hs_moneyReal").slider("value",moneyReal);
+			$("#Ti_moneyReal").val(moneyReal);
+			portfolioplanning();
+		});
+		
+
+		//--- 기타 비중 moneyOther ---//
+		
+		$("#Hs_moneyOther").slider({
+			range: "max",
+			min: 0,
+			max: 1000,
+			value: 0,
+			slide: function(event, ui) {
+				moneyOther = ui.value;
+				$("#Ti_moneyOther").val(moneyOther);
+				portfolioplanning();
+			}
+		});
+		$("#btn_l_moneyOther").click(function(){
+			moneyOther = parseInt($("#Ti_moneyOther").val());
+			if (moneyOther > 0)
+				moneyOther -= 1;
+			$("#Hs_moneyOther").slider("value",moneyOther);
+			$("#Ti_moneyOther").val(moneyOther);
+			portfolioplanning();
+		});
+		$("#btn_r_moneyOther").click(function(){
+			moneyOther = parseInt($("#Ti_moneyOther").val());
+			if (moneyOther < 1000)
+				moneyOther += 1;
+			$("#Hs_moneyOther").slider("value",moneyOther);
+			$("#Ti_moneyOther").val(moneyOther);
+			portfolioplanning();
+		});
+		
+
+		//--- 주식수익률 rateStock ---//
+		
+		$("#Hs_rateStock").slider({
+			range: "max",
+			min: 0,
+			max: 200,
+			value: 80,
+			slide: function(event, ui) {
+				rateStock = ui.value;
+				$("#Ti_rateStock").val(rateStock / 10);
+				portfolioplanning();
+			}
+		});
+		$("#btn_l_rateStock").click(function(){
+			rateStock = parseInt($("#Ti_rateStock").val() * 10);
+			if (rateStock > 0)
+				rateStock -= 1;
+			$("#Hs_rateStock").slider("value",rateStock);
+			$("#Ti_rateStock").val(rateStock / 10);
+			portfolioplanning();
+		});
+		$("#btn_r_rateStock").click(function(){
+			rateStock = parseInt($("#Ti_rateStock").val() * 10);
+			if (rateStock < 200)
+				rateStock += 1;
+			$("#Hs_rateStock").slider("value",rateStock);
+			$("#Ti_rateStock").val(rateStock / 10);
+			portfolioplanning();
+		});
+		
+
+		//--- 채권수익률 rateBond ---//
+		
+		$("#Hs_rateBond").slider({
+			range: "max",
+			min: 0,
+			max: 200,
+			value: 35,
+			slide: function(event, ui) {
+				rateBond = ui.value;
+				$("#Ti_rateBond").val(rateBond / 10);
+				portfolioplanning();
+			}
+		});
+		$("#btn_l_rateBond").click(function(){
+			rateBond = parseInt($("#Ti_rateBond").val() * 10);
+			if (rateBond > 0)
+				rateBond -= 1;
+			$("#Hs_rateBond").slider("value",rateBond);
+			$("#Ti_rateBond").val(rateBond / 10);
+			portfolioplanning();
+		});
+		$("#btn_r_rateBond").click(function(){
+			rateBond = parseInt($("#Ti_rateBond").val() * 10);
+			if (rateBond < 200)
+				rateBond += 1;
+			$("#Hs_rateBond").slider("value",rateBond);
+			$("#Ti_rateBond").val(rateBond / 10);
+			portfolioplanning();
+		});
+		
+
+		//--- 현금수익률 rateCash ---//
+		
+		$("#Hs_rateCash").slider({
+			range: "max",
+			min: 0,
+			max: 200,
+			value: 20,
+			slide: function(event, ui) {
+				rateCash = ui.value;
+				$("#Ti_rateCash").val(rateCash / 10);
+				portfolioplanning();
+			}
+		});
+		$("#btn_l_rateCash").click(function(){
+			rateCash = parseInt($("#Ti_rateCash").val() * 10);
+			if (rateCash > 0)
+				rateCash -= 1;
+			$("#Hs_rateCash").slider("value",rateCash);
+			$("#Ti_rateCash").val(rateCash / 10);
+			portfolioplanning();
+		});
+		$("#btn_r_rateCash").click(function(){
+			rateCash = parseInt($("#Ti_rateCash").val() * 10);
+			if (rateCash < 200)
+				rateCash += 1;
+			$("#Hs_rateCash").slider("value",rateCash);
+			$("#Ti_rateCash").val(rateCash / 10);
+			portfolioplanning();
+		});
+		
+
+		//--- 부동산수익률 rateReal ---//
+		
+		$("#Hs_rateReal").slider({
+			range: "max",
+			min: 0,
+			max: 200,
+			value: 35,
+			slide: function(event, ui) {
+				rateReal = ui.value;
+				$("#Ti_rateReal").val(rateReal / 10);
+				portfolioplanning();
+			}
+		});
+		$("#btn_l_rateReal").click(function(){
+			rateReal = parseInt($("#Ti_rateReal").val() * 10);
+			if (rateReal > 0)
+				rateReal -= 1;
+			$("#Hs_rateReal").slider("value",rateReal);
+			$("#Ti_rateReal").val(rateReal / 10);
+			portfolioplanning();
+		});
+		$("#btn_r_rateReal").click(function(){
+			rateReal = parseInt($("#Ti_rateReal").val() * 10);
+			if (rateReal < 200)
+				rateReal += 1;
+			$("#Hs_rateReal").slider("value",rateReal);
+			$("#Ti_rateReal").val(rateReal / 10);
+			portfolioplanning();
+		});
+		
+
+		//--- 기타수익률 rateOther ---//
+		
+		$("#Hs_rateOther").slider({
+			range: "max",
+			min: 0,
+			max: 200,
+			value: 30,
+			slide: function(event, ui) {
+				rateOther = ui.value;
+				$("#Ti_rateOther").val(rateOther / 10);
+				portfolioplanning();
+			}
+		});
+		$("#btn_l_rateOther").click(function(){
+			rateOther = parseInt($("#Ti_rateOther").val() * 10);
+			if (rateOther > 0)
+				rateOther -= 1;
+			$("#Hs_rateOther").slider("value",rateOther);
+			$("#Ti_rateOther").val(rateOther / 10);
+			portfolioplanning();
+		});
+		$("#btn_r_rateOther").click(function(){
+			rateOther = parseInt($("#Ti_rateOther").val() * 10);
+			if (rateOther < 200)
+				rateOther += 1;
+			$("#Hs_rateOther").slider("value",rateOther);
+			$("#Ti_rateOther").val(rateOther / 10);
+			portfolioplanning();
+		});
+		
+		
+		//--- 미래자산 ---//
+		
+		$("#btn_l_spent").click(function(){
+			spent = parseInt($("#Ti_spent").val());
+			if (spent > 0)
+				spent -= 1;
+			$("#Ti_spent").val(spent);
+			portfolioplanning();
+		});
+		$("#btn_r_spent").click(function(){
+			spent = parseInt($("#Ti_spent").val());
+			if (spent < 50)
+				spent += 1;
+			$("#Ti_spent").val(spent);
+			portfolioplanning();
+		});
+
+
+		
+		//--- 왼쪽 오른쪽 버튼 ---//
+	
+		$(".ui-button.btn_left").button({
+			icon: "ui-icon-arrow-1-w",
+			showLabel: false
+		});
+		$(".ui-button.btn_right").button({
+			icon: "ui-icon-arrow-1-e",
+			showLabel: false
+		});
+
+
+    } );
+    </script>
+</head>
+
+<body>
+
+	<div class="smart_sub">
+    
+        <div class="sub_title">
+			<a href="home.html"><img src="images/btn_back.png" class="btn_back" /></a>
+        	포트폴리오
+        </div>
+        
+        <div class="plate_17">
+
+            <div class="demo-container">
+                <div id="placeholder" class="demo-placeholder"></div>
+            </div>
+
+        </div>
+
+
+        <div class="plate_s1">
+        	자산합계: <input type="text" class="input_text" disabled="disabled" id="moneyTotal" /> 백만원, &nbsp; &nbsp;
+        	가중평균수익률: <input type="text" class="input_text" disabled="disabled" id="wacc" /> %
+        </div>
+
+       
+        <div class="plate_18">
+
+        	<div>
+                <div class="label">주식형 자산비중</div>
+                <button id="btn_l_moneyStock" class="ui-button btn_left"></button>
+                <div id="Hs_moneyStock" class="ui-slider"></div>
+                <button id="btn_r_moneyStock" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_moneyStock" class="input_text" disabled="disabled" value="200" /> 백만원
+                <input type="text" id="Ti_weightStock" class="input_text percent" disabled="disabled" value="0" /> %
+            </div>
+
+        	<div>
+                <div class="label">채권형 자산비중</div>
+                <button id="btn_l_moneyBond" class="ui-button btn_left"></button>
+                <div id="Hs_moneyBond" class="ui-slider"></div>
+                <button id="btn_r_moneyBond" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_moneyBond" class="input_text" disabled="disabled" value="500" /> 백만원
+                <input type="text" id="Ti_weightBond" class="input_text percent" disabled="disabled" value="0" /> %
+            </div>
+
+        	<div>
+                <div class="label">현금 및 유동성 자산비중</div>
+                <button id="btn_l_moneyCash" class="ui-button btn_left"></button>
+                <div id="Hs_moneyCash" class="ui-slider"></div>
+                <button id="btn_r_moneyCash" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_moneyCash" class="input_text" disabled="disabled" value="300" /> 백만원
+                <input type="text" id="Ti_weightCash" class="input_text percent" disabled="disabled" value="0" /> %
+            </div>
+
+        	<div>
+                <div class="label">부동산 자산비중</div>
+                <button id="btn_l_moneyReal" class="ui-button btn_left"></button>
+                <div id="Hs_moneyReal" class="ui-slider"></div>
+                <button id="btn_r_moneyReal" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_moneyReal" class="input_text" disabled="disabled" value="0" /> 백만원
+                <input type="text" id="Ti_weightReal" class="input_text percent" disabled="disabled" value="0" /> %
+            </div>
+
+        	<div>
+                <div class="label">기타 (미술, 골동품 등) 자산비중</div>
+                <button id="btn_l_moneyOther" class="ui-button btn_left"></button>
+                <div id="Hs_moneyOther" class="ui-slider"></div>
+                <button id="btn_r_moneyOther" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_moneyOther" class="input_text" disabled="disabled" value="0" /> 백만원
+                <input type="text" id="Ti_weightOther" class="input_text percent" disabled="disabled" value="0" /> %
+            </div>
+
+
+        </div>
+
+        <div class="plate_19">
+        
+            <div class="demo-container">
+                <div id="placeholder1" class="demo-placeholder"></div>
+            </div>
+        
+        </div>
+        
+        <div class="plate_s2">
+        	<button id="btn_l_spent" class="ui-button btn_left"></button>
+        	<input type="text" class="input_text" disabled="disabled" id="Ti_spent" value="50" />
+            <button id="btn_r_spent" class="ui-button btn_right"></button> 년 후 예상되는 총 자산,
+        	<input type="text" class="input_text" disabled="disabled" id="Ti_futureMoney" /> 백만원
+        </div>
+        
+        <div class="plate_20">
+
+        	<div>
+                <div class="label">주식형 자산 수익률</div>
+                <button id="btn_l_rateStock" class="ui-button btn_left"></button>
+                <div id="Hs_rateStock" class="ui-slider"></div>
+                <button id="btn_r_rateStock" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_rateStock" class="input_text" disabled="disabled" value="8" /> %
+            </div>
+
+        	<div>
+                <div class="label">채권형 자산 수익률</div>
+                <button id="btn_l_rateBond" class="ui-button btn_left"></button>
+                <div id="Hs_rateBond" class="ui-slider"></div>
+                <button id="btn_r_rateBond" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_rateBond" class="input_text" disabled="disabled" value="3.5" /> %
+            </div>
+
+        	<div>
+                <div class="label">현금 및 유동성 자산 수익률</div>
+                <button id="btn_l_rateCash" class="ui-button btn_left"></button>
+                <div id="Hs_rateCash" class="ui-slider"></div>
+                <button id="btn_r_rateCash" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_rateCash" class="input_text" disabled="disabled" value="2" /> %
+            </div>
+
+        	<div>
+                <div class="label">부동산 수익률</div>
+                <button id="btn_l_rateReal" class="ui-button btn_left"></button>
+                <div id="Hs_rateReal" class="ui-slider"></div>
+                <button id="btn_r_rateReal" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_rateReal" class="input_text" disabled="disabled" value="3.5" /> %
+            </div>
+
+        	<div>
+                <div class="label">기타 자산 수익률</div>
+                <button id="btn_l_rateOther" class="ui-button btn_left"></button>
+                <div id="Hs_rateOther" class="ui-slider"></div>
+                <button id="btn_r_rateOther" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_rateOther" class="input_text" disabled="disabled" value="3" /> %
+            </div>
+
+        </div>
+
+        
+    </div>
+
+</body>
+</html>

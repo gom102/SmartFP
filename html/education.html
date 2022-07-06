@@ -1,0 +1,742 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>스마트재무설계</title>
+	<link href="smart.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="jquery-ui/jquery-ui.css">
+	<script src="jquery-ui/external/jquery/jquery.js"></script>
+    <script src="jquery-ui/jquery-ui.js"></script>
+    
+	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="flot/excanvas.min.js"></script><![endif]-->
+	<script language="javascript" type="text/javascript" src="flot/jquery.flot.js"></script>
+	<script language="javascript" type="text/javascript" src="flot/jquery.flot.categories.js"></script>
+
+	<script type="text/javascript" class="code">
+    $(document).ready(function(){
+		
+		//--- 변수 ---//
+		
+		var childAge1;
+		var childAge2;
+		var childAge3;
+		var childAge4;
+		var univMoney;
+		var univYears;
+		var asset;
+		var saving;
+		var returnRate;
+		var univInflation;
+		
+		var assetUp;
+		var savingUp;
+		var savingUpRate;
+		
+		var eduPeriod; // 교육기간
+		var sMoney; // 계산결과
+		var Tmp; // 임시결과
+		var nPer; // 경과기간
+
+
+		//--- 함수 ---//
+
+		var educateplanning = function () {
+
+			childAge1 = $("#Ti_childAge1").val();
+			childAge2 = $("#Ti_childAge2").val();
+			childAge3 = $("#Ti_childAge3").val();
+			childAge4 = $("#Ti_childAge4").val();
+			univMoney = $("#Ti_univMoney").val();
+			univYears = $("#Ti_univYears").val();
+			asset = $("#Ti_Asset").val();
+			saving = $("#Ti_saving").val();
+			returnRate = $("#Ti_returnRate").val();
+			univInflation = $("#Ti_univInflation").val();
+			
+			assetUp= $("#Ti_assetUp").val();
+			savingUp= $("#Ti_savingUp").val();
+			savingUpRate= $("#Ti_savingUpRate").val();
+
+
+			childAge1 = parseInt(childAge1);
+			childAge2 = parseInt(childAge2);
+			childAge3 = parseInt(childAge3);
+			childAge4 = parseInt(childAge4);
+			univMoney = parseInt(univMoney);
+			univYears = parseInt(univYears);
+			asset = parseInt(asset);
+			saving = parseInt(saving) * 12;
+			returnRate = parseInt(returnRate * 100) / 10000;
+			univInflation = parseInt(univInflation * 100) / 10000;
+			
+			assetUp = parseInt(assetUp);
+			savingUp = parseInt(savingUp) * 12;
+			savingUpRate = parseInt(savingUpRate * 100) / 10000;
+			
+
+			//	Hs_childAge2.maximum = Hs_childAge1 - 1;
+			//	Hs_childAge3.maximum = Hs_childAge2 - 1;
+				
+				
+			nPer  =  0;
+				
+			if (childAge4 > 0) {
+				eduPeriod = childAge1 + (20 - childAge1) + univYears + (childAge1 - childAge4);
+			} else if (childAge3 > 0) {
+				eduPeriod = childAge1 + (20 - childAge1) + univYears + (childAge1 - childAge3);
+			} else if (childAge2 > 0) {
+				eduPeriod = childAge1 + (20 - childAge1) + univYears + (childAge1 - childAge2);
+			} else if (childAge1 > 0) {
+				eduPeriod = childAge1 + (20 - childAge1) + univYears;
+			}
+			
+			sMoney = asset + assetUp;
+
+			var d1 = [];
+	
+			for (i = childAge1; i <= eduPeriod; i++) {
+				Tmp = 0;
+				if(i > childAge1) {
+					Tmp = sMoney * (1 + returnRate);
+				} else {
+					Tmp = sMoney;
+				}
+				
+				if(savingUpRate == 0) {
+					Tmp = Tmp + saving;
+					Tmp = Tmp + savingUp;
+				} else {
+					Tmp = Tmp + saving * Math.pow((1 + savingUpRate),(i - childAge1 - 1));
+					Tmp = Tmp + savingUp * Math.pow((1 + savingUpRate),(i - childAge1 - 1));
+				}
+				
+				if(childAge1 > 0) {
+					if(i > 20 && i <= 20 + univYears) {
+						Tmp = Tmp - univMoney * Math.pow((1 + univInflation),(i - childAge1 - 1));
+					}
+				}
+				
+				if(childAge2 > 0) {
+					if(i - (childAge1 - childAge2) > 20 && i - (childAge1 - childAge2) <= 20 + univYears) {
+						Tmp = Tmp - univMoney * Math.pow((1 + univInflation),(i - (childAge1 - childAge2) - childAge2 - 1));
+					}
+				}
+				
+				if(childAge3 > 0) {
+					if(i - (childAge1 - childAge3) > 20 && i - (childAge1 - childAge3) <= 20 + univYears) {
+						Tmp = Tmp - univMoney * Math.pow((1 + univInflation),(i - (childAge1 - childAge3) - childAge3 - 1));
+					}
+				}
+
+				if(childAge4 > 0) {
+					if(i - (childAge1 - childAge4) > 20 && i - (childAge1 - childAge4) <= 20 + univYears) {
+						Tmp = Tmp - univMoney * Math.pow((1 + univInflation),(i - (childAge1 - childAge4) - childAge4 - 1));
+					}
+				}
+				
+				sMoney = Tmp;
+				d1.push([i, Math.round(sMoney)]);
+			}
+
+			$.plot("#placeholder", [{
+				data: d1,
+				bars: { show: true, fill: true }
+			}]);
+
+		}
+
+		
+		educateplanning();
+		
+		//--- 자녀1의 나이 childAge1 ---//
+		
+		$("#Hs_childAge1").slider({
+			range: "max",
+			min: 0,
+			max: 18,
+			value: 7,
+			slide: function(event, ui) {
+				if (ui.value >= childAge2) {
+					childAge1 = ui.value;
+					$("#Ti_childAge1").val(childAge1);
+				} else {
+					$(this).slider("min",childAge2);
+				}
+				educateplanning();
+			}
+		});
+		$("#btn_l_childAge1").click(function(){
+			childAge1 = parseInt($("#Ti_childAge1").val());
+			if (childAge1 > childAge2)
+				childAge1 -= 1;
+			$("#Hs_childAge1").slider("value",childAge1);
+			$("#Ti_childAge1").val(childAge1);
+			educateplanning();
+		});
+		$("#btn_r_childAge1").click(function(){
+			childAge1 = parseInt($("#Ti_childAge1").val());
+			if (childAge1 < 18)
+				childAge1 += 1;
+			$("#Hs_childAge1").slider("value",childAge1);
+			$("#Ti_childAge1").val(childAge1);
+			educateplanning();
+		});
+
+
+		//--- 자녀1의 나이 childAge2 ---//
+		
+		$("#Hs_childAge2").slider({
+			range: "max",
+			min: 0,
+			max: 18,
+			value: 0,
+			slide: function(event, ui) {
+				if ((ui.value <= childAge1) && (ui.value >= childAge3)) {
+					childAge2 = ui.value;
+					$("#Ti_childAge2").val(childAge2);
+				} else if (ui.value > childAge1) {
+					$(this).slider("max",childAge1);
+				} else {
+					$(this).slider("min",childAge3);
+				}
+				educateplanning();
+			}
+		});
+		$("#btn_l_childAge2").click(function(){
+			childAge2 = parseInt($("#Ti_childAge2").val());
+			if (childAge2 > childAge3)
+				childAge2 -= 1;
+			$("#Hs_childAge2").slider("value",childAge2);
+			$("#Ti_childAge2").val(childAge2);
+			educateplanning();
+		});
+		$("#btn_r_childAge2").click(function(){
+			childAge2 = parseInt($("#Ti_childAge2").val());
+			if (childAge2 < childAge1)
+				childAge2 += 1;
+			$("#Hs_childAge2").slider("value",childAge2);
+			$("#Ti_childAge2").val(childAge2);
+			educateplanning();
+		});
+
+
+		//--- 자녀1의 나이 childAge3 ---//
+		
+		$("#Hs_childAge3").slider({
+			range: "max",
+			min: 0,
+			max: 18,
+			value: 0,
+			slide: function(event, ui) {
+				if ((ui.value <= childAge2) && (ui.value >= childAge4)) {
+					childAge3 = ui.value;
+					$("#Ti_childAge3").val(childAge3);
+				} else if (ui.value > childAge2) {
+					$(this).slider("max",childAge2);
+				} else {
+					$(this).slider("min",childAge4);
+				}
+				educateplanning();
+			}
+		});
+		$("#btn_l_childAge3").click(function(){
+			childAge3 = parseInt($("#Ti_childAge3").val());
+			if (childAge3 > childAge4)
+				childAge3 -= 1;
+			$("#Hs_childAge3").slider("value",childAge3);
+			$("#Ti_childAge3").val(childAge3);
+			educateplanning();
+		});
+		$("#btn_r_childAge3").click(function(){
+			childAge3 = parseInt($("#Ti_childAge3").val());
+			if (childAge3 < childAge2)
+				childAge3 += 1;
+			$("#Hs_childAge3").slider("value",childAge3);
+			$("#Ti_childAge3").val(childAge3);
+			educateplanning();
+		});
+
+
+		//--- 자녀1의 나이 childAge4 ---//
+		
+		$("#Hs_childAge4").slider({
+			range: "max",
+			min: 0,
+			max: 18,
+			value: 0,
+			slide: function(event, ui) {
+				if (ui.value <= childAge3) {
+					childAge4 = ui.value;
+					$("#Ti_childAge4").val(childAge4);
+				} else {
+					$(this).slider("max",childAge3);
+				}
+				educateplanning();
+			}
+		});
+		$("#btn_l_childAge4").click(function(){
+			childAge4 = parseInt($("#Ti_childAge4").val());
+			if (childAge4 > 0)
+				childAge4 -= 1;
+			$("#Hs_childAge4").slider("value",childAge4);
+			$("#Ti_childAge4").val(childAge4);
+			educateplanning();
+		});
+		$("#btn_r_childAge4").click(function(){
+			childAge4 = parseInt($("#Ti_childAge4").val());
+			if (childAge4 < childAge3)
+				childAge4 += 1;
+			$("#Hs_childAge4").slider("value",childAge4);
+			$("#Ti_childAge4").val(childAge4);
+			educateplanning();
+		});
+
+
+		//--- 대학등록금 univMoney ---//
+		
+		$("#Hs_univMoney").slider({
+			range: "max",
+			min: 0,
+			max: 3000,
+			value: 1000,
+			slide: function(event, ui) {
+				univMoney = ui.value;
+				$("#Ti_univMoney").val(univMoney);
+				educateplanning();
+			}
+		});
+		$("#btn_l_univMoney").click(function(){
+			univMoney = parseInt($("#Ti_univMoney").val());
+			if (univMoney > 0)
+				univMoney -= 1;
+			$("#Hs_univMoney").slider("value",univMoney);
+			$("#Ti_univMoney").val(univMoney);
+			educateplanning();
+		});
+		$("#btn_r_univMoney").click(function(){
+			univMoney = parseInt($("#Ti_univMoney").val());
+			if (univMoney < 1000)
+				univMoney += 1;
+			$("#Hs_univMoney").slider("value",univMoney);
+			$("#Ti_univMoney").val(univMoney);
+			educateplanning();
+		});
+
+
+		//--- 대학교육기간 univYears ---//
+		
+		$("#Hs_univYears").slider({
+			range: "max",
+			min: 0,
+			max: 6,
+			value: 4,
+			slide: function(event, ui) {
+				univYears = ui.value;
+				$("#Ti_univYears").val(univYears);
+				educateplanning();
+			}
+		});
+		$("#btn_l_univYears").click(function(){
+			univYears = parseInt($("#Ti_univYears").val());
+			if (univYears > 0)
+				univYears -= 1;
+			$("#Hs_univYears").slider("value",univYears);
+			$("#Ti_univYears").val(univYears);
+			educateplanning();
+		});
+		$("#btn_r_univYears").click(function(){
+			univYears = parseInt($("#Ti_univYears").val());
+			if (univYears < 6)
+				univYears += 1;
+			$("#Hs_univYears").slider("value",univYears);
+			$("#Ti_univYears").val(univYears);
+			educateplanning();
+		});
+
+
+		//--- 대학교육준비자산 Asset ---//
+		
+		$("#Hs_Asset").slider({
+			range: "max",
+			min: 0,
+			max: 5000,
+			value: 0,
+			slide: function(event, ui) {
+				Asset = ui.value;
+				$("#Ti_Asset").val(Asset);
+				educateplanning();
+			}
+		});
+		$("#btn_l_Asset").click(function(){
+			Asset = parseInt($("#Ti_Asset").val());
+			if (Asset > 0)
+				Asset -= 1;
+			$("#Hs_Asset").slider("value",Asset);
+			$("#Ti_Asset").val(Asset);
+			educateplanning();
+		});
+		$("#btn_r_Asset").click(function(){
+			Asset = parseInt($("#Ti_Asset").val());
+			if (Asset < 5000)
+				Asset += 1;
+			$("#Hs_Asset").slider("value",Asset);
+			$("#Ti_Asset").val(Asset);
+			educateplanning();
+		});
+
+
+		//--- 대학교육을 위한 저축 saving ---//
+		
+		$("#Hs_saving").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 0,
+			slide: function(event, ui) {
+				saving = ui.value;
+				$("#Ti_saving").val(saving);
+				educateplanning();
+			}
+		});
+		$("#btn_l_saving").click(function(){
+			saving = parseInt($("#Ti_saving").val());
+			if (saving > 0)
+				saving -= 1;
+			$("#Hs_saving").slider("value",saving);
+			$("#Ti_saving").val(saving);
+			educateplanning();
+		});
+		$("#btn_r_saving").click(function(){
+			saving = parseInt($("#Ti_saving").val());
+			if (saving < 500)
+				saving += 1;
+			$("#Hs_saving").slider("value",saving);
+			$("#Ti_saving").val(saving);
+			educateplanning();
+		});
+
+
+		//--- 투자수익률 returnRate ---//
+		
+		$("#Hs_returnRate").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 50,
+			slide: function(event, ui) {
+				returnRate = ui.value;
+				$("#Ti_returnRate").val(returnRate / 10);
+				educateplanning();
+			}
+		});
+		$("#btn_l_returnRate").click(function(){
+			returnRate = parseInt($("#Ti_returnRate").val() * 10);
+			if (returnRate > 0)
+				returnRate -= 1;
+			$("#Hs_returnRate").slider("value",returnRate);
+			$("#Ti_returnRate").val(returnRate / 10);
+			educateplanning();
+		});
+		$("#btn_r_returnRate").click(function(){
+			returnRate = parseInt($("#Ti_returnRate").val() * 10);
+			if (returnRate < 500)
+				returnRate += 1;
+			$("#Hs_returnRate").slider("value",returnRate);
+			$("#Ti_returnRate").val(returnRate / 10);
+			educateplanning();
+		});
+
+		
+		//--- 등록금인상률 univInflation ---//
+		
+		$("#Hs_univInflation").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 80,
+			slide: function(event, ui) {
+				univInflation = ui.value;
+				$("#Ti_univInflation").val(univInflation / 10);
+				educateplanning();
+			}
+		});
+		$("#btn_l_univInflation").click(function(){
+			univInflation = parseInt($("#Ti_univInflation").val() * 10);
+			if (univInflation > 0)
+				univInflation -= 1;
+			$("#Hs_univInflation").slider("value",univInflation);
+			$("#Ti_univInflation").val(univInflation / 10);
+			educateplanning();
+		});
+		$("#btn_r_univInflation").click(function(){
+			univInflation = parseInt($("#Ti_univInflation").val() * 10);
+			if (univInflation < 500)
+				univInflation += 1;
+			$("#Hs_univInflation").slider("value",univInflation);
+			$("#Ti_univInflation").val(univInflation / 10);
+			educateplanning();
+		});
+		
+		
+		//--- 추가저축 savingUp ---//
+		
+		$("#Hs_savingUp").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 0,
+			slide: function(event, ui) {
+				savingUp = ui.value;
+				$("#Ti_savingUp").val(savingUp);
+				educateplanning();
+			}
+		});
+		$("#btn_l_savingUp").click(function(){
+			savingUp = parseInt($("#Ti_savingUp").val());
+			if (savingUp > 0)
+				savingUp -= 1;
+			$("#Hs_savingUp").slider("value",savingUp);
+			$("#Ti_savingUp").val(savingUp);
+			educateplanning();
+		});
+		$("#btn_r_savingUp").click(function(){
+			savingUp = parseInt($("#Ti_savingUp").val());
+			if (savingUp < 500)
+				savingUp += 1;
+			$("#Hs_savingUp").slider("value",savingUp);
+			$("#Ti_savingUp").val(savingUp);
+			educateplanning();
+		});
+		
+		
+
+		//--- 저축증액율 savingUpRate ---//
+		
+		$("#Hs_savingUpRate").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 0,
+			slide: function(event, ui) {
+				savingUpRate = ui.value;
+				$("#Ti_savingUpRate").val(savingUpRate / 10);
+				educateplanning();
+			}
+		});
+		$("#btn_l_savingUpRate").click(function(){
+			savingUpRate = parseInt($("#Ti_savingUpRate").val() * 10);
+			if (savingUpRate > 0)
+				savingUpRate -= 1;
+			$("#Hs_savingUpRate").slider("value",savingUpRate);
+			$("#Ti_savingUpRate").val(savingUpRate / 10);
+			educateplanning();
+		});
+		$("#btn_r_savingUpRate").click(function(){
+			savingUpRate = parseInt($("#Ti_savingUpRate").val() * 10);
+			if (savingUpRate < 500)
+				savingUpRate += 1;
+			$("#Hs_savingUpRate").slider("value",savingUpRate);
+			$("#Ti_savingUpRate").val(savingUpRate / 10);
+			educateplanning();
+		});
+		
+		
+
+
+		//--- 준비자산 추가 assetUp ---//
+		
+		$("#Hs_assetUp").slider({
+			range: "max",
+			min: 0,
+			max: 5000,
+			value: 0,
+			slide: function(event, ui) {
+				assetUp = ui.value;
+				$("#Ti_assetUp").val(assetUp);
+				educateplanning();
+			}
+		});
+		$("#btn_l_assetUp").click(function(){
+			assetUp = parseInt($("#Ti_assetUp").val());
+			if (assetUp > 0)
+				assetUp -= 1;
+			$("#Hs_assetUp").slider("value",assetUp);
+			$("#Ti_assetUp").val(assetUp);
+			educateplanning();
+		});
+		$("#btn_r_assetUp").click(function(){
+			assetUp = parseInt($("#Ti_assetUp").val());
+			if (assetUp < 5000)
+				assetUp += 1;
+			$("#Hs_assetUp").slider("value",assetUp);
+			$("#Ti_assetUp").val(assetUp);
+			educateplanning();
+		});
+
+
+
+
+
+		//--- 왼쪽 오른쪽 버튼 ---//
+	
+		$(".ui-button.btn_left").button({
+			icon: "ui-icon-arrow-1-w",
+			showLabel: false
+		});
+		$(".ui-button.btn_right").button({
+			icon: "ui-icon-arrow-1-e",
+			showLabel: false
+		});
+
+
+    } );
+    </script>
+</head>
+
+<body>
+
+	<div class="smart_sub">
+    
+        <div class="sub_title">
+			<a href="home.html"><img src="images/btn_back.png" class="btn_back" /></a>
+        	자녀교육자금설계
+        </div>
+        
+        <div class="plate_6">
+
+        	<div>
+                <div class="label">자녀1의 현재나이</div>
+                <button id="btn_l_childAge1" class="ui-button btn_left"></button>
+                <div id="Hs_childAge1" class="ui-slider"></div>
+                <button id="btn_r_childAge1" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_childAge1" class="input_text" disabled="disabled" value="7" /> 세
+            </div>
+
+        	<div>
+                <div class="label">자녀2의 현재나이</div>
+                <button id="btn_l_childAge2" class="ui-button btn_left"></button>
+                <div id="Hs_childAge2" class="ui-slider"></div>
+                <button id="btn_r_childAge2" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_childAge2" class="input_text" disabled="disabled" value="0" /> 세
+            </div>
+
+        	<div>
+                <div class="label">자녀3의 현재나이</div>
+                <button id="btn_l_childAge3" class="ui-button btn_left"></button>
+                <div id="Hs_childAge3" class="ui-slider"></div>
+                <button id="btn_r_childAge3" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_childAge3" class="input_text" disabled="disabled" value="0" /> 세
+            </div>
+
+        	<div>
+                <div class="label">자녀4의 현재나이</div>
+                <button id="btn_l_childAge4" class="ui-button btn_left"></button>
+                <div id="Hs_childAge4" class="ui-slider"></div>
+                <button id="btn_r_childAge4" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_childAge4" class="input_text" disabled="disabled" value="0" /> 세
+            </div>
+
+        	<div>
+                <div class="label">대학등록금(년)</div>
+                <button id="btn_l_univMoney" class="ui-button btn_left"></button>
+                <div id="Hs_univMoney" class="ui-slider"></div>
+                <button id="btn_r_univMoney" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_univMoney" class="input_text" disabled="disabled" value="1000" /> 만원
+            </div>
+
+        	<div>
+                <div class="label">대학교육기간</div>
+                <button id="btn_l_univYears" class="ui-button btn_left"></button>
+                <div id="Hs_univYears" class="ui-slider"></div>
+                <button id="btn_r_univYears" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_univYears" class="input_text" disabled="disabled" value="4" /> 년
+            </div>
+
+        	<div>
+                <div class="label">대학교육을 위해 준비해 놓은 자산</div>
+                <button id="btn_l_Asset" class="ui-button btn_left"></button>
+                <div id="Hs_Asset" class="ui-slider"></div>
+                <button id="btn_r_Asset" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_Asset" class="input_text" disabled="disabled" value="0" /> 만원
+            </div>
+
+        	<div>
+                <div class="label">대학교육을 위한 저축 및 투자(월)</div>
+                <button id="btn_l_saving" class="ui-button btn_left"></button>
+                <div id="Hs_saving" class="ui-slider"></div>
+                <button id="btn_r_saving" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_saving" class="input_text" disabled="disabled" value="0" /> 만원
+            </div>
+
+        </div>
+        
+        <div class="plate_7">
+
+        	<div>
+                <div class="label">투자 수익률 (년)</div>
+                <button id="btn_l_returnRate" class="ui-button btn_left"></button>
+                <div id="Hs_returnRate" class="ui-slider"></div>
+                <button id="btn_r_returnRate" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_returnRate" class="input_text" disabled="disabled" value="5" /> %
+            </div>
+
+        	<div>
+                <div class="label">등록금인상률 (년)</div>
+                <button id="btn_l_univInflation" class="ui-button btn_left"></button>
+                <div id="Hs_univInflation" class="ui-slider"></div>
+                <button id="btn_r_univInflation" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_univInflation" class="input_text" disabled="disabled" value="8" /> %
+            </div>
+
+        </div>
+
+        <div class="plate_8">
+        
+        
+        
+            <div class="demo-container">
+                <div id="placeholder" class="demo-placeholder"></div>
+            </div>
+        
+        
+        
+        </div>
+        
+        <div class="plate_s">SOLUTION</div>
+        
+        <div class="plate_9">
+
+        	<div>
+                <div class="label">저축금액을 늘리는 방법 (월)</div>
+                <button id="btn_l_savingUp" class="ui-button btn_left"></button>
+                <div id="Hs_savingUp" class="ui-slider"></div>
+                <button id="btn_r_savingUp" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_savingUp" class="input_text" disabled="disabled" value="0" /> 만원
+            </div>
+
+        	<div>
+                <div class="label">연간 저축 증액률 (년)</div>
+                <button id="btn_l_savingUpRate" class="ui-button btn_left"></button>
+                <div id="Hs_savingUpRate" class="ui-slider"></div>
+                <button id="btn_r_savingUpRate" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_savingUpRate" class="input_text" disabled="disabled" value="0" /> %
+            </div>
+
+        	<div>
+                <div class="label">준비자산을 늘리는 방법</div>
+                <button id="btn_l_assetUp" class="ui-button btn_left"></button>
+                <div id="Hs_assetUp" class="ui-slider"></div>
+                <button id="btn_r_assetUp" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_assetUp" class="input_text" disabled="disabled" value="0" /> 만원
+            </div>
+
+			<p>
+            	 ※ 참고: 저축기간은 막내가 대학입학하는 시점으로 가정합니다.
+            </p>
+
+        </div>
+        
+    </div>
+
+</body>
+</html>

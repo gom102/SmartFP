@@ -1,0 +1,809 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>스마트재무설계</title>
+	<link href="smart.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="jquery-ui/jquery-ui.css">
+	<script src="jquery-ui/external/jquery/jquery.js"></script>
+    <script src="jquery-ui/jquery-ui.js"></script>
+    
+	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="flot/excanvas.min.js"></script><![endif]-->
+	<script language="javascript" type="text/javascript" src="flot/jquery.flot.js"></script>
+	<script language="javascript" type="text/javascript" src="flot/jquery.flot.categories.js"></script>
+
+	<script type="text/javascript" class="code">
+    $(document).ready(function(){
+		
+		//--- 변수 ---//
+
+		var nowAge;
+		var retireAge;
+		var deathAge;
+		var retireMoney;
+		var asset;
+		var saving;
+		var savePeriod; 
+		var pubPension;
+		var pensionInflation;
+		var privPension;
+		var beforeRate;
+		var afterRate;
+		var inflation;
+		var assetUp;
+		var savingUp;
+		var savingUpRate;
+		var pensionUp;
+		var sMoney = 0;
+		var Tmp = 0;
+		
+		var saveMaxPeriod;   // 최대 저축기간
+
+		//--- 함수 ---//
+
+		var retireplanning = function () {
+			
+			nowAge = $("#Ti_nowAge").val();
+			retireAge = $("#Ti_retireAge").val();
+			deathAge = $("#Ti_deathAge").val();
+			retireMoney = $("#Ti_retireMoney").val();
+			asset = $("#Ti_Asset").val();
+			saving = $("#Ti_Saving").val();
+			savePeriod = $("#Ti_savePeriod").val(); 
+			pubPension = $("#Ti_pubPension").val();
+			pensionInflation = $("#Ti_ratePension").val();
+			privPension = $("#Ti_privPension").val();
+			beforeRate = $("#Ti_beforeRate").val();
+			afterRate = $("#Ti_afterRate").val();
+			inflation = $("#Ti_inflation").val();
+			//assetUp = $("#Ti_assetUp").val();
+			savingUp = $("#Ti_savingUp").val();
+			savingUpRate = $("#Ti_savingUpRate").val();
+			//pensionUp = $("#Ti_pensionUp").val();
+			
+			saveMaxPeriod = retireAge - nowAge;  // 최대 저축기간
+
+			nowAge = parseInt(nowAge);
+			retireAge = parseInt(retireAge);
+			deathAge = parseInt(deathAge);
+			retireMoney = parseInt(retireMoney) * 12;
+			asset = parseInt(asset) * 100;
+			saving = parseInt(saving) * 12;
+			savePeriod = parseInt(savePeriod);
+			pubPension = parseInt(pubPension) * 12;
+			pensionInflation = parseInt(pensionInflation * 100) / 10000;
+			privPension = parseInt(privPension) * 12;
+			beforeRate = parseInt(beforeRate * 100) / 10000;
+			afterRate = parseInt(afterRate * 100) / 10000;
+			inflation = parseInt(inflation * 100) / 10000;
+			assetUp = 0;
+			savingUp = parseInt(savingUp) * 12;
+			savingUpRate = parseInt(savingUpRate * 100) / 10000;
+			pensionUp = 0;
+
+			sMoney = asset + assetUp;
+			
+			var d1 = [];
+			var d2 = [];
+
+			for (i=nowAge; i<=deathAge; i++) {
+				Tmp = 0;
+				if(i-nowAge < savePeriod) {
+					if(i > nowAge) {
+						Tmp = sMoney * (1 + beforeRate);
+					} else {
+						Tmp = sMoney;
+					}
+					if(savingUpRate == 0) {
+						Tmp = Tmp + saving;
+						Tmp = Tmp + savingUp;
+					} else {
+						Tmp = Tmp + saving * Math.pow((1 + savingUpRate),(i - nowAge - 1));
+						Tmp = Tmp + savingUp * Math.pow((1 + savingUpRate),(i - nowAge - 1));
+					}
+					sMoney = Tmp;															// 2011.10.29 추가	-- 은퇴후 그래프 색깔 바꾸기 위해서
+					d1.push([i, Math.round(sMoney)]);	// 2011.10.29 추가	-- 은퇴후 그래프 색깔 바꾸기 위해서
+					d2.push([i, 0]);
+				} else if(i < retireAge){
+					if(i > nowAge) {
+						Tmp = sMoney * (1 + beforeRate);
+					} else {
+						Tmp = sMoney;
+					}
+					sMoney = Tmp;														// 2011.10.29 추가	-- 은퇴후 그래프 색깔 바꾸기 위해서
+					d1.push([i, Math.round(sMoney)]);	// 2011.10.29 추가	-- 은퇴후 그래프 색깔 바꾸기 위해서
+					d2.push([i, 0]);
+				} else {
+					Tmp = sMoney * (1 + afterRate);
+
+					Tmp = Tmp - retireMoney * Math.pow((1 + inflation),(i - nowAge - 1));
+
+					if(i >= 65) {
+						//Tmp = Tmp + pubPension;
+						Tmp = Tmp + pubPension * Math.pow((1 + pensionInflation),(i - nowAge));		// 2011.12.6 추가		-- 연금의 미래가치 계산
+					}
+					Tmp = Tmp + privPension;
+					Tmp = Tmp + pensionUp;
+					sMoney = Tmp;														// 2011.10.29 추가	-- 은퇴후 그래프 색깔 바꾸기 위해서
+					d1.push([i, 0]);
+					d2.push([i, Math.round(sMoney)]);	// 2011.10.29 추가	-- 은퇴후 그래프 색깔 바꾸기 위해서
+				}
+			}
+
+			$.plot("#placeholder", [{
+				data: d1,
+				bars: { show: true, fill: true }
+			}, {
+				data: d2,
+				bars: { show: true }
+			}]);
+		}
+
+		
+		retireplanning();
+		
+		//--- 현재나이 nowAge ---//
+		
+		$("#Hs_nowAge").slider({
+			range: "max",
+			min: 20,
+			max: 80,
+			value: 30,
+			slide: function(event, ui) {
+				if (ui.value <= retireAge) {
+					nowAge = ui.value;
+					$("#Ti_nowAge").val(nowAge);
+				} else {
+					$(this).slider("max",retireAge);
+				}
+				retireplanning();
+			}
+		});
+		$("#btn_l_nowAge").click(function(){
+			nowAge = parseInt($("#Ti_nowAge").val());
+			if (nowAge > 20)
+				nowAge -= 1;
+			$("#Hs_nowAge").slider("value",nowAge);
+			$("#Ti_nowAge").val(nowAge);
+			retireplanning();
+		});
+		$("#btn_r_nowAge").click(function(){
+			nowAge = parseInt($("#Ti_nowAge").val());
+			if (nowAge < retireAge)
+				nowAge += 1;
+			$("#Hs_nowAge").slider("value",nowAge);
+			$("#Ti_nowAge").val(nowAge);
+			retireplanning();
+		});
+
+
+		//--- 은퇴나이 retireAge ---//
+		
+		$("#Hs_retireAge").slider({
+			range: "max",
+			min: 40,
+			max: 90,
+			value: 60,
+			slide: function(event, ui) {
+				if ((ui.value <= deathAge) && (ui.value >= nowAge)) {
+					retireAge = ui.value;
+					$("#Ti_retireAge").val(retireAge);
+				} else if (ui.value > deathAge) {
+					$(this).slider("max",deathAge);
+				} else {
+					$(this).slider("min",nowAge);
+				}
+				
+				retireplanning();
+			}
+		});
+		$("#btn_l_retireAge").click(function(){
+			retireAge = parseInt($("#Ti_retireAge").val());
+			if (retireAge > nowAge)
+				retireAge -= 1;
+			$("#Hs_retireAge").slider("value",retireAge);
+			$("#Ti_retireAge").val(retireAge);
+			retireplanning();
+		});
+		$("#btn_r_retireAge").click(function(){
+			retireAge = parseInt($("#Ti_retireAge").val());
+			if (retireAge < deathAge)
+				retireAge += 1;
+			$("#Hs_retireAge").slider("value",retireAge);
+			$("#Ti_retireAge").val(retireAge);
+			retireplanning();
+		});
+		
+		//--- 기대수명 deathAge ---//
+		
+		$("#Hs_deathAge").slider({
+			range: "max",
+			min: 60,
+			max: 120,
+			value: 80,
+			slide: function(event, ui) {
+				if (ui.value >= retireAge) {
+					deathAge = ui.value;
+					$("#Ti_deathAge").val(deathAge);
+				} else {
+					$(this).slider("min",retireAge);
+				}
+				
+				retireplanning();
+			}
+		});
+		$("#btn_l_deathAge").click(function(){
+			deathAge = parseInt($("#Ti_deathAge").val());
+			if (deathAge > retireAge)
+				deathAge -= 1;
+			$("#Hs_deathAge").slider("value",deathAge);
+			$("#Ti_deathAge").val(deathAge);
+			retireplanning();
+		});
+		$("#btn_r_deathAge").click(function(){
+			deathAge = parseInt($("#Ti_deathAge").val());
+			if (deathAge < 120)
+				deathAge += 1;
+			$("#Hs_deathAge").slider("value",deathAge);
+			$("#Ti_deathAge").val(deathAge);
+			retireplanning();
+		});
+		
+
+		//--- 은퇴후 생활비 deathAge ---//
+		
+		$("#Hs_retireMoney").slider({
+			range: "max",
+			min: 80,
+			max: 500,
+			value: 200,
+			slide: function(event, ui) {
+				retireMoney = ui.value;
+				$("#Ti_retireMoney").val(retireMoney);
+				
+				retireplanning();
+			}
+		});
+		$("#btn_l_retireMoney").click(function(){
+			retireMoney = parseInt($("#Ti_retireMoney").val());
+			if (retireMoney > 80)
+				retireMoney -= 1;
+			$("#Hs_retireMoney").slider("value",retireMoney);
+			$("#Ti_retireMoney").val(retireMoney);
+			retireplanning();
+		});
+		$("#btn_r_retireMoney").click(function(){
+			retireMoney = parseInt($("#Ti_retireMoney").val());
+			if (retireMoney < 500)
+				retireMoney += 1;
+			$("#Hs_retireMoney").slider("value",retireMoney);
+			$("#Ti_retireMoney").val(retireMoney);
+			retireplanning();
+		});
+		
+
+		//--- 은퇴준비자산 Asset ---//
+		
+		$("#Hs_Asset").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 0,
+			slide: function(event, ui) {
+				Asset = ui.value;
+				$("#Ti_Asset").val(Asset);
+				retireplanning();
+			}
+		});
+		$("#btn_l_Asset").click(function(){
+			Asset = parseInt($("#Ti_Asset").val());
+			if (Asset > 0)
+				Asset -= 1;
+			$("#Hs_Asset").slider("value",Asset);
+			$("#Ti_Asset").val(Asset);
+			retireplanning();
+		});
+		$("#btn_r_Asset").click(function(){
+			Asset = parseInt($("#Ti_Asset").val());
+			if (Asset < 500)
+				Asset += 1;
+			$("#Hs_Asset").slider("value",Asset);
+			$("#Ti_Asset").val(Asset);
+			retireplanning();
+		});
+		
+
+		//--- 월저축 Saving ---//
+		
+		$("#Hs_Saving").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 0,
+			slide: function(event, ui) {
+				Saving = ui.value;
+				$("#Ti_Saving").val(Saving);
+				retireplanning();
+			}
+		});
+		$("#btn_l_Saving").click(function(){
+			Saving = parseInt($("#Ti_Saving").val());
+			if (Saving > 0)
+				Saving -= 1;
+			$("#Hs_Saving").slider("value",Saving);
+			$("#Ti_Saving").val(Saving);
+			retireplanning();
+		});
+		$("#btn_r_Saving").click(function(){
+			Saving = parseInt($("#Ti_Saving").val());
+			if (Saving < 500)
+				Saving += 1;
+			$("#Hs_Saving").slider("value",Saving);
+			$("#Ti_Saving").val(Saving);
+			retireplanning();
+		});
+		
+
+		//--- 저축기간 savePeriod ---//
+		
+		$("#Hs_savePeriod").slider({
+			range: "max",
+			min: 0,
+			max: 60,
+			value: 0,
+			slide: function(event, ui) {
+				if (ui.value <= saveMaxPeriod) {
+					savePeriod = ui.value;
+					$("#Ti_savePeriod").val(savePeriod);
+				} else {
+					$(this).slider("max",saveMaxPeriod);
+				}
+				retireplanning();
+			}
+		});
+		$("#btn_l_savePeriod").click(function(){
+			savePeriod = parseInt($("#Ti_savePeriod").val());
+			if (savePeriod > 0)
+				savePeriod -= 1;
+			$("#Hs_savePeriod").slider("value",savePeriod);
+			$("#Ti_savePeriod").val(savePeriod);
+			retireplanning();
+		});
+		$("#btn_r_savePeriod").click(function(){
+			savePeriod = parseInt($("#Ti_savePeriod").val());
+			if (savePeriod < saveMaxPeriod)
+				savePeriod += 1;
+			$("#Hs_savePeriod").slider("value",savePeriod);
+			$("#Ti_savePeriod").val(savePeriod);
+			retireplanning();
+		});
+
+
+		//--- 공적연금 pubPension ---//
+		
+		$("#Hs_pubPension").slider({
+			range: "max",
+			min: 0,
+			max: 400,
+			value: 0,
+			slide: function(event, ui) {
+				pubPension = ui.value;
+				$("#Ti_pubPension").val(pubPension);
+				retireplanning();
+			}
+		});
+		$("#btn_l_pubPension").click(function(){
+			pubPension = parseInt($("#Ti_pubPension").val());
+			if (pubPension > 0)
+				pubPension -= 1;
+			$("#Hs_pubPension").slider("value",pubPension);
+			$("#Ti_pubPension").val(pubPension);
+			retireplanning();
+		});
+		$("#btn_r_pubPension").click(function(){
+			pubPension = parseInt($("#Ti_pubPension").val());
+			if (pubPension < 400)
+				pubPension += 1;
+			$("#Hs_pubPension").slider("value",pubPension);
+			$("#Ti_pubPension").val(pubPension);
+			retireplanning();
+		});
+		
+
+		//--- 공적연금상승률 ratePension ---//
+		
+		$("#Hs_ratePension").slider({
+			range: "max",
+			min: 0,
+			max: 100,
+			value: 25,
+			slide: function(event, ui) {
+				ratePension = ui.value;
+				$("#Ti_ratePension").val(ratePension / 10);
+				retireplanning();
+			}
+		});
+		$("#btn_l_ratePension").click(function(){
+			ratePension = parseInt($("#Ti_ratePension").val() * 10);
+			if (ratePension > 0)
+				ratePension -= 1;
+			$("#Hs_ratePension").slider("value",ratePension);
+			$("#Ti_ratePension").val(ratePension / 10);
+			retireplanning();
+		});
+		$("#btn_r_ratePension").click(function(){
+			ratePension = parseInt($("#Ti_ratePension").val() * 10);
+			if (ratePension < 100)
+				ratePension += 1;
+			$("#Hs_ratePension").slider("value",ratePension);
+			$("#Ti_ratePension").val(ratePension / 10);
+			retireplanning();
+		});
+		
+
+		//--- 개인연금 privPension ---//
+		
+		$("#Hs_privPension").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 0,
+			slide: function(event, ui) {
+				privPension = ui.value;
+				$("#Ti_privPension").val(privPension);
+				retireplanning();
+			}
+		});
+		$("#btn_l_privPension").click(function(){
+			privPension = parseInt($("#Ti_privPension").val());
+			if (privPension > 0)
+				privPension -= 1;
+			$("#Hs_privPension").slider("value",privPension);
+			$("#Ti_privPension").val(privPension);
+			retireplanning();
+		});
+		$("#btn_r_privPension").click(function(){
+			privPension = parseInt($("#Ti_privPension").val());
+			if (privPension < 500)
+				privPension += 1;
+			$("#Hs_privPension").slider("value",privPension);
+			$("#Ti_privPension").val(privPension);
+			retireplanning();
+		});
+		
+
+		//--- 물가상승률 inflation ---//
+		
+		$("#Hs_inflation").slider({
+			range: "max",
+			min: 0,
+			max: 100,
+			value: 35,
+			slide: function(event, ui) {
+				inflation = ui.value;
+				$("#Ti_inflation").val(inflation / 10);
+				retireplanning();
+			}
+		});
+		$("#btn_l_inflation").click(function(){
+			inflation = parseInt($("#Ti_inflation").val() * 10);
+			if (inflation > 0)
+				inflation -= 1;
+			$("#Hs_inflation").slider("value",inflation);
+			$("#Ti_inflation").val(inflation / 10);
+			retireplanning();
+		});
+		$("#btn_r_inflation").click(function(){
+			inflation = parseInt($("#Ti_inflation").val() * 10);
+			if (inflation < 100)
+				inflation += 1;
+			$("#Hs_inflation").slider("value",inflation);
+			$("#Ti_inflation").val(inflation / 10);
+			retireplanning();
+		});
+		
+
+		//--- 은퇴전수익률 beforeRate ---//
+		
+		$("#Hs_beforeRate").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 50,
+			slide: function(event, ui) {
+				beforeRate = ui.value;
+				$("#Ti_beforeRate").val(beforeRate / 10);
+				retireplanning();
+			}
+		});
+		$("#btn_l_beforeRate").click(function(){
+			beforeRate = parseInt($("#Ti_beforeRate").val() * 10);
+			if (beforeRate > 0)
+				beforeRate -= 1;
+			$("#Hs_beforeRate").slider("value",beforeRate);
+			$("#Ti_beforeRate").val(beforeRate / 10);
+			retireplanning();
+		});
+		$("#btn_r_beforeRate").click(function(){
+			beforeRate = parseInt($("#Ti_beforeRate").val() * 10);
+			if (beforeRate < 500)
+				beforeRate += 1;
+			$("#Hs_beforeRate").slider("value",beforeRate);
+			$("#Ti_beforeRate").val(beforeRate / 10);
+			retireplanning();
+		});
+		
+
+		//--- 은퇴후수익률 afterRate ---//
+		
+		$("#Hs_afterRate").slider({
+			range: "max",
+			min: 0,
+			max: 200,
+			value: 35,
+			slide: function(event, ui) {
+				afterRate = ui.value;
+				$("#Ti_afterRate").val(afterRate / 10);
+				retireplanning();
+			}
+		});
+		$("#btn_l_afterRate").click(function(){
+			afterRate = parseInt($("#Ti_afterRate").val() * 10);
+			if (afterRate > 0)
+				afterRate -= 1;
+			$("#Hs_afterRate").slider("value",afterRate);
+			$("#Ti_afterRate").val(afterRate / 10);
+			retireplanning();
+		});
+		$("#btn_r_afterRate").click(function(){
+			afterRate = parseInt($("#Ti_afterRate").val() * 10);
+			if (afterRate < 200)
+				afterRate += 1;
+			$("#Hs_afterRate").slider("value",afterRate);
+			$("#Ti_afterRate").val(afterRate / 10);
+			retireplanning();
+		});
+		
+
+		//--- 증액저축 savingUp ---//
+		
+		$("#Hs_savingUp").slider({
+			range: "max",
+			min: 0,
+			max: 1000,
+			value: 0,
+			slide: function(event, ui) {
+				savingUp = ui.value;
+				$("#Ti_savingUp").val(savingUp);
+				retireplanning();
+			}
+		});
+		$("#btn_l_savingUp").click(function(){
+			savingUp = parseInt($("#Ti_savingUp").val());
+			if (savingUp > 0)
+				savingUp -= 1;
+			$("#Hs_savingUp").slider("value",savingUp);
+			$("#Ti_savingUp").val(savingUp);
+			retireplanning();
+		});
+		$("#btn_r_savingUp").click(function(){
+			savingUp = parseInt($("#Ti_savingUp").val());
+			if (savingUp < 500)
+				savingUp += 1;
+			$("#Hs_savingUp").slider("value",savingUp);
+			$("#Ti_savingUp").val(savingUp);
+			retireplanning();
+		});
+		
+
+		//--- 저축증액률 savingUpRate ---//
+		
+		$("#Hs_savingUpRate").slider({
+			range: "max",
+			min: 0,
+			max: 100,
+			value: 0,
+			slide: function(event, ui) {
+				savingUpRate = ui.value;
+				$("#Ti_savingUpRate").val(savingUpRate);
+				retireplanning();
+			}
+		});
+		$("#btn_l_savingUpRate").click(function(){
+			savingUpRate = parseInt($("#Ti_savingUpRate").val());
+			if (savingUpRate > 0)
+				savingUpRate -= 1;
+			$("#Hs_savingUpRate").slider("value",savingUpRate);
+			$("#Ti_savingUpRate").val(savingUpRate);
+			retireplanning();
+		});
+		$("#btn_r_savingUpRate").click(function(){
+			savingUpRate = parseInt($("#Ti_savingUpRate").val());
+			if (savingUpRate < 100)
+				savingUpRate += 1;
+			$("#Hs_savingUpRate").slider("value",savingUpRate);
+			$("#Ti_savingUpRate").val(savingUpRate);
+			retireplanning();
+		});
+		
+
+		
+		//--- 왼쪽 오른쪽 버튼 ---//
+	
+		$(".ui-button.btn_left").button({
+			icon: "ui-icon-arrow-1-w",
+			showLabel: false
+		});
+		$(".ui-button.btn_right").button({
+			icon: "ui-icon-arrow-1-e",
+			showLabel: false
+		});
+
+
+    } );
+    </script>
+</head>
+
+<body>
+
+	<div class="smart_sub">
+    
+        <div class="sub_title">
+			<a href="home.html"><img src="images/btn_back.png" class="btn_back" /></a>
+        	은퇴설계
+        </div>
+        
+        <div class="plate_1">
+
+        	<div>
+                <div class="label">현재나이</div>
+                <button id="btn_l_nowAge" class="ui-button btn_left"></button>
+                <div id="Hs_nowAge" class="ui-slider"></div>
+                <button id="btn_r_nowAge" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_nowAge" class="input_text" disabled="disabled" value="30" /> 세
+            </div>
+
+        	<div>
+                <div class="label">희망은퇴시점</div>
+                <button id="btn_l_retireAge" class="ui-button btn_left">-</button>
+                <div id="Hs_retireAge" class="ui-slider"></div>
+                <button id="btn_r_retireAge" class="ui-button btn_right">+</button>
+                <input type="text" id="Ti_retireAge" class="input_text" disabled="disabled" value="60" /> 세
+            </div>
+
+        	<div>
+                <div class="label">기대수명</div>
+                <button id="btn_l_deathAge" class="ui-button btn_left"></button>
+                <div id="Hs_deathAge" class="ui-slider"></div>
+                <button id="btn_r_deathAge" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_deathAge" class="input_text" disabled="disabled" value="80" /> 세
+            </div>
+
+        	<div>
+                <div class="label">은퇴 후 예상되는 생활비 (월)</div>
+                <button id="btn_l_retireMoney" class="ui-button btn_left"></button>
+                <div id="Hs_retireMoney" class="ui-slider"></div>
+                <button id="btn_r_retireMoney" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_retireMoney" class="input_text" disabled="disabled" value="200" /> 만원
+            </div>
+
+        	<div>
+                <div class="label">은퇴만을 위해 준비해 놓은 자산</div>
+                <button id="btn_l_Asset" class="ui-button btn_left"></button>
+                <div id="Hs_Asset" class="ui-slider"></div>
+                <button id="btn_r_Asset" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_Asset" class="input_text" disabled="disabled" value="0" /> 백만원
+            </div>
+
+        	<div>
+                <div class="label">은퇴만을 위한 저축금액 (월)</div>
+                <button id="btn_l_Saving" class="ui-button btn_left"></button>
+                <div id="Hs_Saving" class="ui-slider"></div>
+                <button id="btn_r_Saving" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_Saving" class="input_text" disabled="disabled" value="0" /> 만원
+            </div>
+
+        	<div>
+                <div class="label">은퇴만을 위한 저축기간</div>
+                <button id="btn_l_savePeriod" class="ui-button btn_left"></button>
+                <div id="Hs_savePeriod" class="ui-slider"></div>
+                <button id="btn_r_savePeriod" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_savePeriod" class="input_text" disabled="disabled" value="0" /> 년
+            </div>
+
+        </div>
+        
+        <div class="plate_2">
+
+        	<div>
+                <div class="label">공적연금(국민,공무원 등) 수령액 (월)</div>
+                <button id="btn_l_pubPension" class="ui-button btn_left"></button>
+                <div id="Hs_pubPension" class="ui-slider"></div>
+                <button id="btn_r_pubPension" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_pubPension" class="input_text" disabled="disabled" value="0" /> 만원
+            </div>
+
+        	<div>
+                <div class="label">공적연금 상승률 (년)</div>
+                <button id="btn_l_ratePension" class="ui-button btn_left"></button>
+                <div id="Hs_ratePension" class="ui-slider"></div>
+                <button id="btn_r_ratePension" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_ratePension" class="input_text" disabled="disabled" value="2.5" /> %
+            </div>
+
+        	<div>
+                <div class="label">개인연금 수령액 (월)</div>
+                <button id="btn_l_privPension" class="ui-button btn_left"></button>
+                <div id="Hs_privPension" class="ui-slider"></div>
+                <button id="btn_r_privPension" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_privPension" class="input_text" disabled="disabled" value="0" /> 만원
+            </div>
+
+        	<div>
+                <div class="label">물가상승률 (년)</div>
+                <button id="btn_l_inflation" class="ui-button btn_left"></button>
+                <div id="Hs_inflation" class="ui-slider"></div>
+                <button id="btn_r_inflation" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_inflation" class="input_text" disabled="disabled" value="3.5" /> %
+            </div>
+
+        </div>
+
+        <div class="plate_3">
+        
+        
+        
+		<div class="demo-container">
+			<div id="placeholder" class="demo-placeholder"></div>
+		</div>
+        
+        
+        
+        </div>
+        
+        <div class="plate_s">SOLUTION</div>
+        
+        <div class="plate_4">
+
+        	<div>
+                <div class="label">저축금액을 늘리는 방법 (월)</div>
+                <button id="btn_l_savingUp" class="ui-button btn_left"></button>
+                <div id="Hs_savingUp" class="ui-slider"></div>
+                <button id="btn_r_savingUp" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_savingUp" class="input_text" disabled="disabled" value="0" /> 만원
+            </div>
+
+        	<div>
+                <div class="label">연간 저축 증액률 (년) </div>
+                <button id="btn_l_savingUpRate" class="ui-button btn_left"></button>
+                <div id="Hs_savingUpRate" class="ui-slider"></div>
+                <button id="btn_r_savingUpRate" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_savingUpRate" class="input_text" disabled="disabled" value="0" /> %
+            </div>
+
+        </div>
+
+        <div class="plate_5">
+
+        	<div>
+                <div class="label">은퇴 전 수익률 (년)</div>
+                <button id="btn_l_beforeRate" class="ui-button btn_left"></button>
+                <div id="Hs_beforeRate" class="ui-slider"></div>
+                <button id="btn_r_beforeRate" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_beforeRate" class="input_text" disabled="disabled" value="5" /> %
+            </div>
+
+        	<div>
+                <div class="label">은퇴 후 수익률 (년)</div>
+                <button id="btn_l_afterRate" class="ui-button btn_left"></button>
+                <div id="Hs_afterRate" class="ui-slider"></div>
+                <button id="btn_r_afterRate" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_afterRate" class="input_text" disabled="disabled" value="3.5" /> %
+            </div>
+
+        </div>
+        
+    </div>
+
+</body>
+</html>

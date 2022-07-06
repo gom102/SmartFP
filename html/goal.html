@@ -1,0 +1,581 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>스마트재무설계</title>
+	<link href="smart.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="jquery-ui/jquery-ui.css">
+	<script src="jquery-ui/external/jquery/jquery.js"></script>
+    <script src="jquery-ui/jquery-ui.js"></script>
+    
+	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="flot/excanvas.min.js"></script><![endif]-->
+	<script language="javascript" type="text/javascript" src="flot/jquery.flot.js"></script>
+	<script language="javascript" type="text/javascript" src="flot/jquery.flot.categories.js"></script>
+
+	<script type="text/javascript" class="code">
+    $(document).ready(function(){
+		
+		//--- 변수 ---//
+		
+		var goalMoney;
+		var year;
+		var saveYear;
+		var asset;
+		var saving;
+		var investRate;
+		var inflation;
+		
+		var assetUp;
+		var savingUp;
+		var savingUpRate;
+		
+		var sMoney; //계산결과
+		var sMoney2;
+		var Tmp; // 임시결과
+		var nPer;
+
+		//--- 함수 ---//
+
+		var educateplanning = function () {
+
+			goalMoney = $("#Ti_goalMoney").val();
+			year = $("#Ti_year").val();
+			saveYear = $("#Ti_saveYear").val();
+			asset = $("#Ti_Asset").val();
+			saving = $("#Ti_saving").val();
+			investRate = $("#Ti_investRate").val();
+			inflation = $("#Ti_inflation").val();
+			
+			assetUp= $("#Ti_assetUp").val();
+			savingUp= $("#Ti_savingUp").val();
+			savingUpRate= $("#Ti_savingUpRate").val();
+
+
+			goalMoney = parseInt(goalMoney) * 100;
+			year = parseInt(year);
+			saveYear = parseInt(saveYear);
+			asset = parseInt(asset);
+			saving = parseInt(saving) * 12;
+			investRate = parseInt(investRate * 100) / 10000;
+			inflation = parseInt(inflation * 100) / 10000;
+			
+			assetUp = parseInt(assetUp);
+			savingUp = parseInt(savingUp) * 12;
+			savingUpRate = parseInt(savingUpRate * 100) / 10000;
+
+			nPer = year;
+
+			//	if (Hs_year.value < Hs_saveYear.value) {
+			//		Hs_saveYear.value = Hs_year.value;
+			//	}
+
+			sMoney = asset + assetUp;
+				
+			var d1 = [];
+			var d2 = [];
+
+			for (i = 0; i <= nPer; i++) {
+				
+				Tmp = 0;
+				if(i < saveYear) {
+					Tmp = sMoney * (1 + investRate);
+					
+					if(savingUpRate == 0) {
+						Tmp = Tmp + saving;
+						Tmp = Tmp + savingUp;
+					} else {
+						Tmp = Tmp + saving * Math.pow((1 + savingUpRate),i);
+						Tmp = Tmp + savingUp * Math.pow((1 + savingUpRate),i);
+					}
+				} else {
+					Tmp = sMoney * (1 + investRate);
+				}
+					
+				sMoney = Tmp;
+				
+				if(i == nPer) {
+					sMoney2 = goalMoney * Math.pow((1 + inflation),i);
+				} else {
+					sMoney2 = 0;
+				}
+
+				d1.push([i, Math.round(sMoney)]);
+				d2.push([i, Math.round(sMoney2)]);
+				
+			}
+
+
+
+			$.plot("#placeholder", [{
+				data: d1,
+				bars: { show: true, fill: true }
+			}, {
+				data: d2,
+				bars: { show: true }
+			}]);
+
+		}
+
+		
+		educateplanning();
+		
+
+		//--- 목표금액 goalMoney ---//
+		
+		$("#Hs_goalMoney").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 100,
+			slide: function(event, ui) {
+				goalMoney = ui.value;
+				$("#Ti_goalMoney").val(goalMoney);
+				educateplanning();
+			}
+		});
+		$("#btn_l_goalMoney").click(function(){
+			goalMoney = parseInt($("#Ti_goalMoney").val());
+			if (goalMoney > 0)
+				goalMoney -= 1;
+			$("#Hs_goalMoney").slider("value",goalMoney);
+			$("#Ti_goalMoney").val(goalMoney);
+			educateplanning();
+		});
+		$("#btn_r_goalMoney").click(function(){
+			goalMoney = parseInt($("#Ti_goalMoney").val());
+			if (goalMoney < 500)
+				goalMoney += 1;
+			$("#Hs_goalMoney").slider("value",goalMoney);
+			$("#Ti_goalMoney").val(goalMoney);
+			educateplanning();
+		});
+
+
+		//--- 남은기간 year ---//
+		
+		$("#Hs_year").slider({
+			range: "max",
+			min: 0,
+			max: 50,
+			value: 10,
+			slide: function(event, ui) {
+				if (ui.value >= saveYear) {
+					year = ui.value;
+					$("#Ti_year").val(year);
+				} else {
+					$(this).slider("min",saveYear);
+				}
+				educateplanning();
+			}
+		});
+		$("#btn_l_year").click(function(){
+			year = parseInt($("#Ti_year").val());
+			if (year > saveYear)
+				year -= 1;
+			$("#Hs_year").slider("value",year);
+			$("#Ti_year").val(year);
+			educateplanning();
+		});
+		$("#btn_r_year").click(function(){
+			year = parseInt($("#Ti_year").val());
+			if (year < 50)
+				year += 1;
+			$("#Hs_year").slider("value",year);
+			$("#Ti_year").val(year);
+			educateplanning();
+		});
+
+
+		//--- 저축가능기간 saveYear ---//
+		
+		$("#Hs_saveYear").slider({
+			range: "max",
+			min: 0,
+			max: 50,
+			value: 10,
+			slide: function(event, ui) {
+				if (ui.value <= year) {
+					saveYear = ui.value;
+					$("#Ti_saveYear").val(saveYear);
+				} else {
+					$(this).slider("max",year);
+				}
+				educateplanning();
+			}
+		});
+		$("#btn_l_saveYear").click(function(){
+			saveYear = parseInt($("#Ti_saveYear").val());
+			if (saveYear > 0)
+				saveYear -= 1;
+			$("#Hs_saveYear").slider("value",saveYear);
+			$("#Ti_saveYear").val(saveYear);
+			educateplanning();
+		});
+		$("#btn_r_saveYear").click(function(){
+			saveYear = parseInt($("#Ti_saveYear").val());
+			if (saveYear < year)
+				saveYear += 1;
+			$("#Hs_saveYear").slider("value",saveYear);
+			$("#Ti_saveYear").val(saveYear);
+			educateplanning();
+		});
+
+
+		//--- 준비자산 Asset ---//
+		
+		$("#Hs_Asset").slider({
+			range: "max",
+			min: 0,
+			max: 5000,
+			value: 0,
+			slide: function(event, ui) {
+				Asset = ui.value;
+				$("#Ti_Asset").val(Asset);
+				educateplanning();
+			}
+		});
+		$("#btn_l_Asset").click(function(){
+			Asset = parseInt($("#Ti_Asset").val());
+			if (Asset > 0)
+				Asset -= 1;
+			$("#Hs_Asset").slider("value",Asset);
+			$("#Ti_Asset").val(Asset);
+			educateplanning();
+		});
+		$("#btn_r_Asset").click(function(){
+			Asset = parseInt($("#Ti_Asset").val());
+			if (Asset < 5000)
+				Asset += 1;
+			$("#Hs_Asset").slider("value",Asset);
+			$("#Ti_Asset").val(Asset);
+			educateplanning();
+		});
+
+
+		//--- 월저축 saving ---//
+		
+		$("#Hs_saving").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 0,
+			slide: function(event, ui) {
+				saving = ui.value;
+				$("#Ti_saving").val(saving);
+				educateplanning();
+			}
+		});
+		$("#btn_l_saving").click(function(){
+			saving = parseInt($("#Ti_saving").val());
+			if (saving > 0)
+				saving -= 1;
+			$("#Hs_saving").slider("value",saving);
+			$("#Ti_saving").val(saving);
+			educateplanning();
+		});
+		$("#btn_r_saving").click(function(){
+			saving = parseInt($("#Ti_saving").val());
+			if (saving < 500)
+				saving += 1;
+			$("#Hs_saving").slider("value",saving);
+			$("#Ti_saving").val(saving);
+			educateplanning();
+		});
+
+
+		//--- 투자수익률 investRate ---//
+		
+		$("#Hs_investRate").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 50,
+			slide: function(event, ui) {
+				investRate = ui.value;
+				$("#Ti_investRate").val(investRate / 10);
+				educateplanning();
+			}
+		});
+		$("#btn_l_investRate").click(function(){
+			investRate = parseInt($("#Ti_investRate").val() * 10);
+			if (investRate > 0)
+				investRate -= 1;
+			$("#Hs_investRate").slider("value",investRate);
+			$("#Ti_investRate").val(investRate / 10);
+			educateplanning();
+		});
+		$("#btn_r_investRate").click(function(){
+			investRate = parseInt($("#Ti_investRate").val() * 10);
+			if (investRate < 500)
+				investRate += 1;
+			$("#Hs_investRate").slider("value",investRate);
+			$("#Ti_investRate").val(investRate / 10);
+			educateplanning();
+		});
+
+		
+		//--- 등록금인상률 inflation ---//
+		
+		$("#Hs_inflation").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 35,
+			slide: function(event, ui) {
+				inflation = ui.value;
+				$("#Ti_inflation").val(inflation / 10);
+				educateplanning();
+			}
+		});
+		$("#btn_l_inflation").click(function(){
+			inflation = parseInt($("#Ti_inflation").val() * 10);
+			if (inflation > 0)
+				inflation -= 1;
+			$("#Hs_inflation").slider("value",inflation);
+			$("#Ti_inflation").val(inflation / 10);
+			educateplanning();
+		});
+		$("#btn_r_inflation").click(function(){
+			inflation = parseInt($("#Ti_inflation").val() * 10);
+			if (inflation < 500)
+				inflation += 1;
+			$("#Hs_inflation").slider("value",inflation);
+			$("#Ti_inflation").val(inflation / 10);
+			educateplanning();
+		});
+		
+		
+		//--- 추가저축 savingUp ---//
+		
+		$("#Hs_savingUp").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 0,
+			slide: function(event, ui) {
+				savingUp = ui.value;
+				$("#Ti_savingUp").val(savingUp);
+				educateplanning();
+			}
+		});
+		$("#btn_l_savingUp").click(function(){
+			savingUp = parseInt($("#Ti_savingUp").val());
+			if (savingUp > 0)
+				savingUp -= 1;
+			$("#Hs_savingUp").slider("value",savingUp);
+			$("#Ti_savingUp").val(savingUp);
+			educateplanning();
+		});
+		$("#btn_r_savingUp").click(function(){
+			savingUp = parseInt($("#Ti_savingUp").val());
+			if (savingUp < 500)
+				savingUp += 1;
+			$("#Hs_savingUp").slider("value",savingUp);
+			$("#Ti_savingUp").val(savingUp);
+			educateplanning();
+		});
+		
+		
+
+		//--- 저축증액율 savingUpRate ---//
+		
+		$("#Hs_savingUpRate").slider({
+			range: "max",
+			min: 0,
+			max: 500,
+			value: 0,
+			slide: function(event, ui) {
+				savingUpRate = ui.value;
+				$("#Ti_savingUpRate").val(savingUpRate / 10);
+				educateplanning();
+			}
+		});
+		$("#btn_l_savingUpRate").click(function(){
+			savingUpRate = parseInt($("#Ti_savingUpRate").val() * 10);
+			if (savingUpRate > 0)
+				savingUpRate -= 1;
+			$("#Hs_savingUpRate").slider("value",savingUpRate);
+			$("#Ti_savingUpRate").val(savingUpRate / 10);
+			educateplanning();
+		});
+		$("#btn_r_savingUpRate").click(function(){
+			savingUpRate = parseInt($("#Ti_savingUpRate").val() * 10);
+			if (savingUpRate < 500)
+				savingUpRate += 1;
+			$("#Hs_savingUpRate").slider("value",savingUpRate);
+			$("#Ti_savingUpRate").val(savingUpRate / 10);
+			educateplanning();
+		});
+		
+		
+
+
+		//--- 준비자산 추가 assetUp ---//
+		
+		$("#Hs_assetUp").slider({
+			range: "max",
+			min: 0,
+			max: 5000,
+			value: 0,
+			slide: function(event, ui) {
+				assetUp = ui.value;
+				$("#Ti_assetUp").val(assetUp);
+				educateplanning();
+			}
+		});
+		$("#btn_l_assetUp").click(function(){
+			assetUp = parseInt($("#Ti_assetUp").val());
+			if (assetUp > 0)
+				assetUp -= 1;
+			$("#Hs_assetUp").slider("value",assetUp);
+			$("#Ti_assetUp").val(assetUp);
+			educateplanning();
+		});
+		$("#btn_r_assetUp").click(function(){
+			assetUp = parseInt($("#Ti_assetUp").val());
+			if (assetUp < 5000)
+				assetUp += 1;
+			$("#Hs_assetUp").slider("value",assetUp);
+			$("#Ti_assetUp").val(assetUp);
+			educateplanning();
+		});
+
+
+
+
+
+		//--- 왼쪽 오른쪽 버튼 ---//
+	
+		$(".ui-button.btn_left").button({
+			icon: "ui-icon-arrow-1-w",
+			showLabel: false
+		});
+		$(".ui-button.btn_right").button({
+			icon: "ui-icon-arrow-1-e",
+			showLabel: false
+		});
+
+
+    } );
+    </script>
+</head>
+
+<body>
+
+	<div class="smart_sub">
+    
+        <div class="sub_title">
+			<a href="home.html"><img src="images/btn_back.png" class="btn_back" /></a>
+        	목적자금설계
+        </div>
+        
+        <div class="plate_10">
+
+        	<div>
+                <div class="label">목표금액 (현재가치)</div>
+                <button id="btn_l_goalMoney" class="ui-button btn_left"></button>
+                <div id="Hs_goalMoney" class="ui-slider"></div>
+                <button id="btn_r_goalMoney" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_goalMoney" class="input_text" disabled="disabled" value="100" /> 백만원
+            </div>
+
+        	<div>
+                <div class="label">목표까지 남은기간</div>
+                <button id="btn_l_year" class="ui-button btn_left"></button>
+                <div id="Hs_year" class="ui-slider"></div>
+                <button id="btn_r_year" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_year" class="input_text" disabled="disabled" value="10" /> 년
+            </div>
+
+        	<div>
+                <div class="label">저축가능기간</div>
+                <button id="btn_l_saveYear" class="ui-button btn_left"></button>
+                <div id="Hs_saveYear" class="ui-slider"></div>
+                <button id="btn_r_saveYear" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_saveYear" class="input_text" disabled="disabled" value="10" /> 년
+            </div>
+
+        	<div>
+                <div class="label">목표를 위해 미리 준비한 자산</div>
+                <button id="btn_l_Asset" class="ui-button btn_left"></button>
+                <div id="Hs_Asset" class="ui-slider"></div>
+                <button id="btn_r_Asset" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_Asset" class="input_text" disabled="disabled" value="0" /> 만원
+            </div>
+
+        	<div>
+                <div class="label">목표를 위한 저축 및 투자(월)</div>
+                <button id="btn_l_saving" class="ui-button btn_left"></button>
+                <div id="Hs_saving" class="ui-slider"></div>
+                <button id="btn_r_saving" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_saving" class="input_text" disabled="disabled" value="0" /> 만원
+            </div>
+
+        </div>
+        
+        <div class="plate_11">
+
+        	<div>
+                <div class="label">투자 수익률 (년)</div>
+                <button id="btn_l_investRate" class="ui-button btn_left"></button>
+                <div id="Hs_investRate" class="ui-slider"></div>
+                <button id="btn_r_investRate" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_investRate" class="input_text" disabled="disabled" value="5" /> %
+            </div>
+
+        	<div>
+                <div class="label">물가상승률 (년)</div>
+                <button id="btn_l_inflation" class="ui-button btn_left"></button>
+                <div id="Hs_inflation" class="ui-slider"></div>
+                <button id="btn_r_inflation" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_inflation" class="input_text" disabled="disabled" value="3.5" /> %
+            </div>
+
+        </div>
+
+        <div class="plate_12">
+        
+        
+        
+            <div class="demo-container">
+                <div id="placeholder" class="demo-placeholder"></div>
+            </div>
+        
+        
+        
+        </div>
+        
+        <div class="plate_s">SOLUTION</div>
+        
+        <div class="plate_13">
+
+        	<div>
+                <div class="label">저축금액을 늘리는 방법 (월)</div>
+                <button id="btn_l_savingUp" class="ui-button btn_left"></button>
+                <div id="Hs_savingUp" class="ui-slider"></div>
+                <button id="btn_r_savingUp" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_savingUp" class="input_text" disabled="disabled" value="0" /> 만원
+            </div>
+
+        	<div>
+                <div class="label">연간 저축 증액률 (년)</div>
+                <button id="btn_l_savingUpRate" class="ui-button btn_left"></button>
+                <div id="Hs_savingUpRate" class="ui-slider"></div>
+                <button id="btn_r_savingUpRate" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_savingUpRate" class="input_text" disabled="disabled" value="0" /> %
+            </div>
+
+        	<div>
+                <div class="label">준비자산을 늘리는 방법</div>
+                <button id="btn_l_assetUp" class="ui-button btn_left"></button>
+                <div id="Hs_assetUp" class="ui-slider"></div>
+                <button id="btn_r_assetUp" class="ui-button btn_right"></button>
+                <input type="text" id="Ti_assetUp" class="input_text" disabled="disabled" value="0" /> 만원
+            </div>
+
+        </div>
+        
+    </div>
+
+</body>
+</html>

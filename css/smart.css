@@ -1,0 +1,509 @@
+@charset "UTF-8";
+/* CSS Document */
+
+body {
+	margin: 0 0 0 0;
+	padding: 0;
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 14px;
+	color: #333333;
+	background: #010409;
+}
+a {
+	color: #333333;
+	text-decoration: none;
+}
+a:hover {
+	color: #72ba34;
+	text-decoration: none;
+}
+img {
+	border: 0;
+}
+p {
+	color: #fff;
+}
+
+/* JQUERY UI */
+.ui-slider {
+	width: 330px;
+	float: left;
+	margin: 8px 10px;
+}
+.ui-button {
+	float: left;
+	height: 30px;
+}
+.btn_left {
+	margin-left: 15px;
+}
+.label {
+	font-size: 15px;
+	margin: 8px 3px 0 3px;
+}
+.input_text {
+	font-size: 18px;
+	width: 80px;
+	height: 25px;
+	padding: 0;
+	margin-left: 10px;
+	background-color: #333;
+	color: #fff;
+}
+
+/* Chart */
+.demo-container {
+	box-sizing: border-box;
+	width: 580px;
+	height: 330px;
+	padding: 20px 15px 15px 15px;
+	margin: 15px auto 30px auto;
+	border: 1px solid #ddd;
+	background: #ccc;
+	background: linear-gradient(#f6f6f6 0, #ccc 50px);
+	background: -o-linear-gradient(#f6f6f6 0, #ccc 50px);
+	background: -ms-linear-gradient(#f6f6f6 0, #ccc 50px);
+	background: -moz-linear-gradient(#f6f6f6 0, #ccc 50px);
+	background: -webkit-linear-gradient(#f6f6f6 0, #ccc 50px);
+	box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+	-o-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+	-ms-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+	-moz-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+	-webkit-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.demo-placeholder {
+	width: 100%;
+	height: 100%;
+	font-size: 14px;
+	line-height: 1.2em;
+}
+
+.legend table {
+	border-spacing: 5px;
+}
+
+.iframe {
+	margin: auto;
+	padding: 0;
+	border: none;
+	overflow: hidden;
+}
+/* Main */
+.smart_main {
+	width: 1280px;
+	height: 754px;
+	background:url(/images/main_bg.png);
+	margin: 0;
+}
+.smart_main img {
+	cursor: pointer;
+}
+.smart_main .btn_retire {
+	position: absolute;
+	top: 97px;
+	left: 77px;
+}
+.smart_main .btn_edu {
+	position: absolute;
+	top: 97px;
+	left:269px; 
+}
+.smart_main .btn_goal {
+	position: absolute;
+	top: 97px;
+	left: 461px; 
+}
+.smart_main .btn_debt {
+	position: absolute;
+	top: 487px;
+	left: 461px; 
+}
+.smart_main .btn_inv3 {
+	position: absolute;
+	top: 292px;
+	left: 654px; 
+}
+.smart_main .btn_inv2 {
+	position: absolute;
+	top: 292px;
+	left: 461px; 
+}
+.smart_main .btn_inv1 {
+	position: absolute;
+	top: 292px;
+	left: 269.5px; 
+}
+.smart_main .btn_insu {
+	position: absolute;
+	top:487px;
+	left: 77px; 
+}
+.smart_main .tvmcalc {
+	position: absolute;
+	top: 258px;
+	left: 865px; 
+}
+.smart_main .logo_link {
+	position: absolute;
+	top: 116px;
+	left: 962px; 
+}
+
+
+/* SUB */
+.smart_sub {
+	width: 1280px;
+	height: 754px;
+	background:url(/images/sub_bg.png);
+	margin: 0;
+	font-size: 15px;
+}
+.smart_sub .sub_title {
+	position: absolute;
+	top: 9px;
+	left: 12px; 
+	color: #ccc;
+	font-size: 18px;
+	line-height: 28px;
+}
+.smart_sub .sub_title img {
+	cursor: pointer;
+	float: left;
+	margin-right: 10px;
+}
+
+.smart_sub .plate_s {
+	position: absolute;
+	top: 430px;
+	left: 664px;
+	width: 570px;
+	height: 30px;
+	color: #fff;
+	font-size: 18px;
+	line-height: 30px;
+	padding-left: 10px;
+	margin-left: 0;
+	background-color: #6E7C82;
+}
+.smart_sub .plate_s button {
+	font-size:16px;
+	width: 100px;
+	height: 30px;
+	padding-top: 4px;
+	float: right;
+	cursor: pointer;
+	background: #039;
+	color: #eee;
+	border: 0;
+}
+
+
+.smart_sub .plate_s1 {
+	position: absolute;
+	top: 380px;
+	left: 34px;
+	width: 570px;
+	height: 30px;
+	color: #fff;
+	font-size: 18px;
+	line-height: 30px;
+	padding-left: 10px;
+	margin-left: 0;
+	background-color: #6E7C82;
+	text-align: center;
+}
+
+.smart_sub .plate_s2 {
+	position: absolute;
+	top: 380px;
+	left: 664px;
+	width: 570px;
+	height: 30px;
+	color: #fff;
+	font-size: 18px;
+	line-height: 30px;
+	padding-left: 10px;
+	margin-left: 0;
+	background-color: #6E7C82;
+	text-align: left;
+}
+
+.smart_sub .plate_s2 button {
+	width: 30px;
+	float: left;
+	margin: 0 10px;
+}
+
+.smart_sub .plate_s2 #Ti_spent {
+	float: left;
+	margin: 0;
+	width: 60px;
+}
+.smart_sub .plate_s2 #Ti_futureMoney {
+	margin: 0;
+	width: 80px;
+}
+.smart_sub .plate_s2 #Ti_futureMoney.ss {
+	margin: 0;
+	width: 150px;
+}
+
+
+/* Retire */
+.smart_sub .plate_1 {
+	position: absolute;
+	top: 60px;
+	left: 34px;
+	width: 580px;
+	height: 411px;
+}
+
+.smart_sub .plate_2 {
+	position: absolute;
+	top: 485px;
+	left: 34px;
+	width: 580px;
+	height: 245px;
+}
+
+.smart_sub .plate_3 {
+	position: absolute;
+	top: 66px;
+	left: 664px;
+	width: 580px;
+	height: 350px;
+}
+.smart_sub .plate_4 {
+	position: absolute;
+	top: 470px;
+	left: 664px;
+	width: 580px;
+	height: 127px;
+	color: #fff;
+}
+.smart_sub .plate_4 table {
+	position: absolute;
+	width: 100%;
+	background: #fff;
+	color: #000;
+}
+
+
+
+.smart_sub .plate_5 {
+	position: absolute;
+	top: 599px;
+	left: 664px;
+	width: 580px;
+	height: 128px;
+	color: #fff;
+}
+
+/* Education */
+.smart_sub .plate_6 {
+	position: absolute;
+	top: 60px;
+	left: 34px;
+	width: 580px;
+	height: 481px;
+}
+
+.smart_sub .plate_7 {
+	position: absolute;
+	top: 555px;
+	left: 34px;
+	width: 580px;
+	height: 175px;
+}
+
+.smart_sub .plate_8 {
+	position: absolute;
+	top: 66px;
+	left: 664px;
+	width: 580px;
+	height: 350px;
+}
+.smart_sub .plate_9 {
+	position: absolute;
+	top: 470px;
+	left: 664px;
+	width: 580px;
+	height: 187px;
+	color: #fff;
+}
+
+
+/* Goal */
+.smart_sub .plate_10 {
+	position: absolute;
+	top: 60px;
+	left: 34px;
+	width: 580px;
+	height: 301px;
+}
+
+.smart_sub .plate_11 {
+	position: absolute;
+	top: 375px;
+	left: 34px;
+	width: 580px;
+	height: 175px;
+}
+
+.smart_sub .plate_12 {
+	position: absolute;
+	top: 66px;
+	left: 664px;
+	width: 580px;
+	height: 350px;
+}
+.smart_sub .plate_13 {
+	position: absolute;
+	top: 470px;
+	left: 664px;
+	width: 580px;
+	height: 187px;
+	color: #fff;
+}
+
+
+/* InvTest */
+.smart_sub .test_title {
+	font-size: 18px;
+	height: 30px;
+}
+.smart_sub .test_answer {
+	font-size: 16px;
+	margin-left: 20px;
+	margin-bottom: 20px;
+	line-height: 24px;
+}
+
+.smart_sub .plate_14 {
+	position: absolute;
+	top: 70px;
+	left: 34px;
+	width: 580px;
+	height: 651px;
+}
+
+.smart_sub .plate_15 {
+	position: absolute;
+	top: 70px;
+	left: 664px;
+	width: 580px;
+	height: 310px;
+	color: #eee;
+}
+.smart_sub .plate_16 {
+	position: absolute;
+	top: 480px;
+	left: 664px;
+	width: 580px;
+	height: 230px;
+	color: #fff;
+	background: #ccc;
+}
+
+
+/* portfolio */
+
+.smart_sub .plate_17 {
+	position: absolute;
+	top: 66px;
+	left: 34px;
+	width: 580px;
+	height: 300px;
+}
+
+.smart_sub .plate_18 {
+	position: absolute;
+	top: 420px;
+	left: 34px;
+	width: 580px;
+	height: 301px;
+}
+
+.smart_sub .plate_19 {
+	position: absolute;
+	top: 66px;
+	left: 664px;
+	width: 580px;
+	height: 300px;
+}
+.smart_sub .plate_20 {
+	position: absolute;
+	top: 420px;
+	left: 664px;
+	width: 580px;
+	height: 301px;
+	color: #fff;
+}
+
+.plate_18 .ui-slider {
+	width: 240px;
+	float: left;
+	margin: 8px 10px;
+}
+
+.plate_18 .percent {
+	width: 40px;
+}
+
+.plate_17 .demo-container, .plate_19 .demo-container {
+	height: 300px;
+	margin: 0;
+}
+
+
+/* Saving */
+.smart_sub .plate_21 {
+	position: absolute;
+	top: 60px;
+	left: 34px;
+	width: 580px;
+	height: 411px;
+}
+.smart_sub .plate_21 .test_title {
+	font-size: 16px;
+	height: 30px;
+}
+.smart_sub .plate_21 .test_answer {
+	font-size: 16px;
+	margin-left: 20px;
+	margin-bottom: 20px;
+	line-height: 24px;
+}
+
+.smart_sub .plate_22 {
+	position: absolute;
+	top: 455px;
+	left: 34px;
+	width: 580px;
+	height: 245px;
+}
+
+.smart_sub .plate_23 {
+	position: absolute;
+	top: 425px;
+	left: 664px;
+	width: 580px;
+	height: 285px;
+	border: 1px #333 solid;
+}
+.smart_sub .plate_23 table {
+	width: 100%;
+	height: 30px;
+	background: #ccc;
+	color: #000;
+}
+.smart_sub .plate_23 td {
+	border-bottom: 1px #333 solid;
+	text-align: center;
+}
+.smart_sub .plate_23 .overdata {
+	height: 255px;
+	overflow: scroll;
+}
+
